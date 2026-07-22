@@ -1,0 +1,63 @@
+:root {
+  --crescendo-ink: #1a2332;
+  --crescendo-accent: #0d6e6e;
+  --crescendo-accent-soft: #e6f3f3;
+  --crescendo-warm: #c4a35a;
+}
+
+body {
+  color: var(--crescendo-ink);
+  background-color: #f7f8fa;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--crescendo-accent) !important;
+}
+
+.navbar-brand .bi {
+  color: var(--crescendo-warm);
+}
+
+.hero-crescendo {
+  background:
+    linear-gradient(135deg, var(--crescendo-accent-soft) 0%, #ffffff 55%, #f0ebe3 100%);
+  border-bottom: 1px solid rgba(26, 35, 50, 0.08);
+}
+
+.hero-crescendo .display-5 {
+  font-weight: 700;
+  color: var(--crescendo-ink);
+}
+
+.btn-crescendo {
+  --bs-btn-bg: var(--crescendo-accent);
+  --bs-btn-border-color: var(--crescendo-accent);
+  --bs-btn-hover-bg: #0a5858;
+  --bs-btn-hover-border-color: #0a5858;
+  --bs-btn-active-bg: #084646;
+  --bs-btn-active-border-color: #084646;
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-color: #fff;
+}
+
+.footer-crescendo {
+  background-color: var(--crescendo-ink);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.footer-crescendo a {
+  color: var(--crescendo-warm);
+  text-decoration: none;
+}
+
+.footer-crescendo a:hover {
+  color: #fff;
+}
+
+.nav-link.active {
+  font-weight: 600;
+  color: var(--crescendo-accent) !important;
+}
