@@ -1,8 +1,9 @@
-/** Петте основни рубрики на Crescendo */
+/** Петте основни рубрики на Crescendo (MPA пътища) */
 export const RUBRICS = [
   {
     slug: 'benefits',
-    path: '/benefits',
+    path: '/benefits.html',
+    page: 'benefits',
     title: 'Ползи',
     icon: 'bi-lightbulb',
     description:
@@ -10,7 +11,8 @@ export const RUBRICS = [
   },
   {
     slug: 'policies',
-    path: '/policies',
+    path: '/policies.html',
+    page: 'policies',
     title: 'Политики',
     icon: 'bi-bank',
     description:
@@ -18,7 +20,8 @@ export const RUBRICS = [
   },
   {
     slug: 'practices',
-    path: '/practices',
+    path: '/practices.html',
+    page: 'practices',
     title: 'Практики',
     icon: 'bi-journal-richtext',
     description:
@@ -26,7 +29,8 @@ export const RUBRICS = [
   },
   {
     slug: 'el-sistema',
-    path: '/el-sistema',
+    path: '/el-sistema.html',
+    page: 'el-sistema',
     title: 'Ел Система',
     icon: 'bi-people',
     description:
@@ -34,13 +38,18 @@ export const RUBRICS = [
   },
   {
     slug: 'events',
-    path: '/events',
+    path: '/events.html',
+    page: 'events',
     title: 'Актуално / Събития',
     icon: 'bi-calendar-event',
     description:
       'Новини, редакционни материали и календар на събития.',
   },
 ];
+
+export function getRubricByPage(page) {
+  return RUBRICS.find((r) => r.page === page) ?? null;
+}
 
 export function getRubricByPath(path) {
   return RUBRICS.find((r) => r.path === path) ?? null;

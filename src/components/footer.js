@@ -6,7 +6,7 @@ export function renderFooter() {
   const categoryLinks = RUBRICS.map(
     (rubric) => `
       <li>
-        <a href="${rubric.path}" data-link>${rubric.title}</a>
+        <a href="${rubric.path}">${rubric.title}</a>
       </li>
     `,
   ).join('');
@@ -34,8 +34,8 @@ export function renderFooter() {
           <div class="col-md-3">
             <h2 class="h6 text-white mb-2">Достъп</h2>
             <ul class="list-unstyled small mb-0 d-flex flex-column gap-1">
-              <li><a href="/login" data-link>Вход</a></li>
-              <li><a href="/dashboard" data-link>Табло</a></li>
+              <li><a href="/login.html">Вход</a></li>
+              <li><a href="/dashboard.html">Табло</a></li>
             </ul>
           </div>
         </div>

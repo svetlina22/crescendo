@@ -1,8 +1,8 @@
-import { getRubricByPath } from '../data/rubrics.js';
+import { getRubricByPage } from '../data/rubrics.js';
 import { renderRubricPage } from '../components/RubricPage.js';
 
 export async function renderElSistemaPage() {
-  const rubric = getRubricByPath('/el-sistema');
+  const rubric = getRubricByPage('el-sistema');
 
   return renderRubricPage({
     title: rubric.title,

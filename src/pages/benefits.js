@@ -1,8 +1,8 @@
-import { getRubricByPath } from '../data/rubrics.js';
+import { getRubricByPage } from '../data/rubrics.js';
 import { renderRubricPage } from '../components/RubricPage.js';
 
 export async function renderBenefitsPage() {
-  const rubric = getRubricByPath('/benefits');
+  const rubric = getRubricByPage('benefits');
 
   return renderRubricPage({
     title: rubric.title,

@@ -2,8 +2,7 @@ import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
 export default defineConfig({
-  // SPA shell + History API router — deep links work in `vite` / `vite preview`
-  appType: 'spa',
+  appType: 'mpa',
   root: '.',
   publicDir: 'public',
   server: {
@@ -18,10 +17,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    // Single HTML entry; client router handles /benefits, /events, etc.
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        benefits: resolve(__dirname, 'benefits.html'),
+        policies: resolve(__dirname, 'policies.html'),
+        practices: resolve(__dirname, 'practices.html'),
+        elSistema: resolve(__dirname, 'el-sistema.html'),
+        events: resolve(__dirname, 'events.html'),
+        login: resolve(__dirname, 'login.html'),
+        dashboard: resolve(__dirname, 'dashboard.html'),
       },
     },
   },

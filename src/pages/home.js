@@ -4,7 +4,7 @@ export async function renderHomePage() {
   const cards = RUBRICS.map(
     (rubric) => `
       <div class="col-md-6 col-xl-4">
-        <a href="${rubric.path}" class="text-decoration-none text-reset h-100 d-block" data-link>
+        <a href="${rubric.path}" class="text-decoration-none text-reset h-100 d-block">
           <div class="card h-100 border-0 shadow-sm rubric-card">
             <div class="card-body p-4">
               <div class="rubric-icon mb-3" aria-hidden="true">
@@ -35,8 +35,8 @@ export async function renderHomePage() {
           </div>
           <div class="col-lg-4">
             <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-              <a href="/events" class="btn btn-crescendo btn-lg" data-link>Актуално</a>
-              <a href="/login" class="btn btn-outline-secondary btn-lg" data-link>Вход</a>
+              <a href="/events.html" class="btn btn-crescendo btn-lg">Актуално</a>
+              <a href="/login.html" class="btn btn-outline-secondary btn-lg">Вход</a>
             </div>
           </div>
         </div>
