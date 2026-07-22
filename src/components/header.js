@@ -1,3 +1,5 @@
+import { RUBRICS } from '../data/rubrics.js';
+
 export function renderHeader(activePath = '/') {
   const isActive = (path) => {
     if (path === '/') return activePath === '/';
@@ -6,6 +8,16 @@ export function renderHeader(activePath = '/') {
 
   const linkClass = (path) =>
     `nav-link${isActive(path) ? ' active' : ''}`;
+
+  const rubricLinks = RUBRICS.map(
+    (rubric) => `
+      <li class="nav-item">
+        <a class="${linkClass(rubric.path)}" href="${rubric.path}" data-link>
+          ${rubric.title}
+        </a>
+      </li>
+    `,
+  ).join('');
 
   return `
     <header>
@@ -22,25 +34,33 @@ export function renderHeader(activePath = '/') {
             data-bs-target="#mainNav"
             aria-controls="mainNav"
             aria-expanded="false"
-            aria-label="Toggle navigation"
+            aria-label="Превключване на навигацията"
           >
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+            <ul class="navbar-nav mx-lg-auto align-items-lg-center gap-lg-1">
               <li class="nav-item">
-                <a class="${linkClass('/')}" href="/" data-link>Home</a>
+                <a class="${linkClass('/')}" href="/" data-link>Начало</a>
               </li>
-              <li class="nav-item">
-                <a class="${linkClass('/dashboard')}" href="/dashboard" data-link>Dashboard</a>
-              </li>
-              <li class="nav-item">
-                <a class="${linkClass('/games')}" href="/games/demo" data-link>Sample Game</a>
-              </li>
-              <li class="nav-item ms-lg-2">
-                <a class="btn btn-crescendo btn-sm px-3" href="/login" data-link>Login</a>
-              </li>
+              ${rubricLinks}
             </ul>
+            <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0">
+              <a
+                class="btn btn-outline-secondary btn-sm px-3${isActive('/login') ? ' active' : ''}"
+                href="/login"
+                data-link
+              >
+                Вход
+              </a>
+              <a
+                class="btn btn-crescendo btn-sm px-3${isActive('/dashboard') ? ' active' : ''}"
+                href="/dashboard"
+                data-link
+              >
+                Табло
+              </a>
+            </div>
           </div>
         </div>
       </nav>

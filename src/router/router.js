@@ -1,6 +1,6 @@
 /**
- * Lightweight client-side router (History API).
- * Matches static paths and dynamic segments like /games/:id.
+ * Клиентски History API рутер.
+ * Поддържа статични пътища и динамични сегменти (:id).
  */
 
 function pathToRegex(path) {
@@ -49,12 +49,12 @@ export function createRouter({ routes, onResolve }) {
         params: {},
         route: {
           path: pathname,
-          title: 'Not Found',
+          title: 'Страницата не е намерена',
           render: async () => `
             <section class="container py-5">
-              <h1 class="h3">Page not found</h1>
-              <p class="text-secondary">No route matches <code>${pathname}</code>.</p>
-              <a href="/" class="btn btn-crescendo" data-link>Back home</a>
+              <h1 class="h3">Страницата не е намерена</h1>
+              <p class="text-secondary">Няма маршрут за <code>${pathname}</code>.</p>
+              <a href="/" class="btn btn-crescendo" data-link>Към началото</a>
             </section>
           `,
         },

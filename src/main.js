@@ -4,10 +4,10 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 import './styles/main.css';
 
-import { createRouter } from './router/index.js';
+import { createRouter } from './router/router.js';
 import { routes } from './router/routes.js';
-import { renderHeader } from './components/header.js';
-import { renderFooter } from './components/footer.js';
+import { renderHeader } from './components/Header.js';
+import { renderFooter } from './components/Footer.js';
 
 const headerEl = document.querySelector('#header');
 const pageEl = document.querySelector('#page');
@@ -22,7 +22,7 @@ async function renderLayout({ path, params, route }) {
   pageEl.innerHTML = `
     <div class="container py-5 text-center text-secondary">
       <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
-      <span class="ms-2">Loading…</span>
+      <span class="ms-2">Зареждане…</span>
     </div>
   `;
 
@@ -33,7 +33,7 @@ async function renderLayout({ path, params, route }) {
     pageEl.innerHTML = `
       <section class="container py-5">
         <div class="alert alert-danger" role="alert">
-          Failed to render this page. Check the console for details.
+          Страницата не можа да се зареди. Проверете конзолата за подробности.
         </div>
       </section>
     `;
