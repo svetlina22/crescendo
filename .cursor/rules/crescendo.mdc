@@ -1,0 +1,58 @@
+---
+description: Crescendo platform — stack, architecture, Supabase RLS, and workflow
+alwaysApply: true
+---
+
+# Role and Core Philosophy
+
+You are an expert full-stack developer. Your task is to build and maintain the **Crescendo** web platform — an academic and professional platform for music education research.
+
+- Keep code clean, maintainable, and strictly Vanilla JS + Bootstrap 5.
+- Avoid over-engineering.
+- Do **not** suggest or introduce SPA frameworks (React, Vue, Svelte, Alpine.js) or TypeScript.
+
+# Technology Stack
+
+- **Frontend:** HTML5, CSS3, ES6+ Vanilla JavaScript
+- **UI Framework:** Bootstrap 5 (CSS and JS)
+- **Icons:** Bootstrap Icons
+- **Build Tool:** Vite
+- **Backend / Database:** Supabase (PostgreSQL, Auth, Storage, RLS)
+- **Environment:** Node.js and npm
+
+# UI and Styling Guidelines (Bootstrap First)
+
+- Prefer native Bootstrap 5 components (navbar, cards, modals, toasts, offcanvas, forms, tabs, badges) over custom CSS/JS.
+- Do not invent custom UI when a Bootstrap component already exists.
+- Use Bootstrap **Toasts** for non-blocking notifications and Bootstrap **Modals** for critical confirmations.
+- Write custom CSS only for academic branding overrides or layouts not covered by Bootstrap utility classes.
+
+# Architecture and File Structure
+
+- **MPA:** Each screen is its own standalone HTML file (e.g. `index.html`, `post.html`, `admin.html`). Do not use SPA routers.
+- **Vite:** Every new HTML page MUST be registered in `vite.config.js` under `build.rollupOptions.input`.
+- Keep HTML clean.
+- Import Bootstrap CSS/JS via npm in shared JS entry points (e.g. `src/main.js`); avoid redundant CDN links in HTML.
+- Separate concerns into `src/services/`, `src/components/`, `src/utils/`, and `src/styles/`. Avoid monolithic files.
+
+# Database and Supabase Integration
+
+- Use `@supabase/supabase-js`.
+- Define schema and RLS only via SQL migration scripts.
+- Operate in the `public` schema with these core entities:
+  - `profiles` — linked to `auth.users`; fields include `full_name`, `avatar_url`, and `role`: `'admin' | 'author'`
+  - `categories` — the 5 pillars of the platform
+  - `posts` — articles/events with `status`: `'draft' | 'published'`
+- Do **not** reuse or reference quiz/exam-preparation tables from previous contexts.
+
+## RLS — Security and Authorization
+
+- **Guests:** Read-only access to posts with `status = 'published'`.
+- **Authors:** Can CREATE and UPDATE their own posts, locked to `status = 'draft'`. Authors cannot set `status = 'published'`, cannot update other authors' posts, and cannot delete posts.
+- **Admins:** Full control. Only admins can publish (`status = 'published'`), edit any post, or delete posts.
+
+# Workflow Rules
+
+1. Before adding a new library, ask for explicit permission.
+2. When creating a new page, immediately update the Vite configuration.
+3. When writing database interactions, explicitly consider RLS policies and user roles (Guest vs Author vs Admin).
