@@ -1,42 +1,41 @@
 import { RUBRICS } from '../data/rubrics.js';
+import { fetchPublishedArticles } from '../services/articles.js';
+import { fetchUpcomingEvents } from '../services/events.js';
+import { renderArticlesFeed } from '../components/ArticlesFeed.js';
+import { renderEventsSidebar } from '../components/EventsSidebar.js';
 
 export async function renderHomePage() {
-  const cards = RUBRICS.map(
+  const [articles, events] = await Promise.all([
+    fetchPublishedArticles(8),
+    fetchUpcomingEvents(4),
+  ]);
+
+  const rubricStrip = RUBRICS.map(
     (rubric) => `
-      <div class="col-md-6 col-xl-4">
-        <a href="${rubric.path}" class="text-decoration-none text-reset h-100 d-block">
-          <div class="card h-100 border-0 shadow-sm rubric-card">
-            <div class="card-body p-4">
-              <div class="rubric-icon mb-3" aria-hidden="true">
-                <i class="bi ${rubric.icon} fs-3"></i>
-              </div>
-              <h2 class="h5 mb-2">${rubric.title}</h2>
-              <p class="text-secondary small mb-0">${rubric.description}</p>
-            </div>
-          </div>
-        </a>
-      </div>
+      <a href="${rubric.path}" class="badge rounded-pill text-bg-light text-decoration-none px-3 py-2">
+        <i class="bi ${rubric.icon} me-1" aria-hidden="true"></i>
+        ${rubric.title}
+      </a>
     `,
   ).join('');
 
   return `
-    <section class="hero-crescendo py-5">
-      <div class="container py-lg-3">
-        <div class="row align-items-center g-4">
+    <section class="hero-crescendo py-4 py-lg-5">
+      <div class="container">
+        <div class="row align-items-center g-3">
           <div class="col-lg-8">
             <p class="text-uppercase small fw-semibold text-secondary mb-2">
               Музикално образование
             </p>
-            <h1 class="display-5 mb-3">Crescendo</h1>
+            <h1 class="display-5 mb-2">Crescendo</h1>
             <p class="lead text-secondary mb-0">
               Академична платформа за изследвания, политики и практики
-              в музикалното образование — включително методологиите на El Sistema.
+              в музикалното образование.
             </p>
           </div>
           <div class="col-lg-4">
             <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-              <a href="/resonance.html" class="btn btn-crescendo btn-lg">Резонанс</a>
-              <a href="/login.html" class="btn btn-outline-secondary btn-lg">Вход</a>
+              ${rubricStrip}
             </div>
           </div>
         </div>
@@ -44,14 +43,15 @@ export async function renderHomePage() {
     </section>
 
     <section class="container py-5">
-      <div class="d-flex justify-content-between align-items-end mb-4">
-        <div>
-          <h2 class="h3 mb-1">Петте рубрики</h2>
-          <p class="text-secondary mb-0">Изберете тема, за да разгледате материалите.</p>
+      <div class="row g-4 align-items-start">
+        <div class="col-lg-8">
+          ${renderArticlesFeed(articles)}
         </div>
-      </div>
-      <div class="row g-3">
-        ${cards}
+        <div class="col-lg-4">
+          <div class="events-sidebar-sticky">
+            ${renderEventsSidebar(events)}
+          </div>
+        </div>
       </div>
     </section>
   `;

@@ -81,3 +81,67 @@ body {
   background: var(--crescendo-accent-soft);
   color: var(--crescendo-accent);
 }
+
+.events-sidebar-sticky {
+  position: sticky;
+  top: 1.25rem;
+}
+
+.events-sidebar__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.events-sidebar__item {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.events-sidebar__date {
+  flex: 0 0 3.25rem;
+  width: 3.25rem;
+  border-radius: 0.5rem;
+  background: var(--crescendo-accent-soft);
+  color: var(--crescendo-accent);
+  text-align: center;
+  padding: 0.4rem 0.25rem;
+  line-height: 1.1;
+}
+
+.events-sidebar__day {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.events-sidebar__month {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.events-sidebar__title {
+  display: block;
+  font-weight: 600;
+  color: var(--crescendo-ink);
+  text-decoration: none;
+  margin-bottom: 0.25rem;
+}
+
+.events-sidebar__title:hover {
+  color: var(--crescendo-accent);
+}
+
+.events-sidebar__location,
+.events-sidebar__time {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.events-sidebar__location .bi,
+.events-sidebar__time .bi {
+  margin-right: 0.2rem;
+}
