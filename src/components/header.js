@@ -33,7 +33,6 @@ export function renderHeader(activePath = '/index.html') {
             <ul class="navbar-nav mx-lg-auto align-items-lg-center gap-lg-1 py-3 py-lg-0">
               <li class="nav-item"><a class="${linkClass('/index.html')}" href="/index.html">Начало</a></li>
               ${rubricLinks}
-              <li class="nav-item"><a class="${linkClass('/events.html')}" href="/events.html">Събития</a></li>
               <li class="nav-item"><a class="${linkClass('/about.html')}" href="/about.html">За нас</a></li>
             </ul>
           </div>

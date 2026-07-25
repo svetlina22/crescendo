@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 function injectEarlyStyles() {
   return {
     name: 'crescendo-early-styles',
+    apply: 'serve',
     transformIndexHtml(html) {
       if (html.includes('/src/styles/main.css')) return html;
       const tags = `

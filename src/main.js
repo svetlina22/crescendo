@@ -1,3 +1,4 @@
+import './styles/main.css';
 import { mountPage } from './router/router.js';
 
 // CSS се зарежда от <link> в HTML (vite inject) — не блокира JS

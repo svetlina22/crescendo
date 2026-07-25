@@ -7,6 +7,7 @@ import { fetchUpcomingEvents } from '../services/events.js';
 import { renderArticlesFeed } from '../components/ArticlesFeed.js';
 import { renderEventsSidebar } from '../components/EventsSidebar.js';
 import { renderTagCloudWidget } from '../components/HomeSidebar.js';
+import { initHeroCarousel } from '../components/HeroCarousel.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -69,6 +70,8 @@ export async function initHomePage() {
   const tagCloudWrap = document.getElementById('tagCloudWrap');
   const eventsWrap = document.getElementById('eventsSidebarWrap');
   if (!feedEl) return;
+
+  void initHeroCarousel();
 
   const initial = readFiltersFromUrl();
   let popularTags = [];
