@@ -48,6 +48,9 @@ export function renderHeader(activePath = '/index.html') {
                 <a class="${linkClass('/index.html')}" href="/index.html">Начало</a>
               </li>
               ${rubricLinks}
+              <li class="nav-item">
+                <a class="${linkClass('/about.html')}" href="/about.html">За нас</a>
+              </li>
             </ul>
           </div>
         </div>

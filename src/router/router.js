@@ -22,7 +22,7 @@ export async function mountPage() {
   const page = getPage(pageId);
 
   headerEl.innerHTML = renderHeader(page?.path || '/index.html');
-  footerEl.innerHTML = renderFooter();
+  footerEl.innerHTML = renderFooter(page?.path || '/index.html');
 
   if (!page) {
     document.title = 'Страницата не е намерена · Crescendo';

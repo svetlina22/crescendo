@@ -8,6 +8,7 @@ import { renderEventsPage } from '../pages/events.js';
 import { renderLoginPage, initLoginPage } from '../pages/login.js';
 import { renderDashboardPage, initDashboardPage } from '../pages/dashboard.js';
 import { renderArticlePage } from '../pages/article.js';
+import { renderAboutPage } from '../pages/about.js';
 
 /** MPA page registry — keyed by body[data-page] */
 export const pages = {
@@ -34,6 +35,11 @@ export const pages = {
     title: 'Статия',
     path: '/article.html',
     render: renderArticlePage,
+  },
+  about: {
+    title: 'За нас',
+    path: '/about.html',
+    render: renderAboutPage,
   },
   login: { title: 'Вход', path: '/login.html', render: renderLoginPage, init: initLoginPage },
   dashboard: {

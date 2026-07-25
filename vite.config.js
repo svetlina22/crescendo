@@ -29,6 +29,7 @@ export default defineConfig({
         login: resolve(__dirname, 'login.html'),
         dashboard: resolve(__dirname, 'dashboard.html'),
         article: resolve(__dirname, 'article.html'),
+        about: resolve(__dirname, 'about.html'),
       },
     },
   },
