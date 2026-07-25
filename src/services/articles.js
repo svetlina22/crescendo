@@ -223,7 +223,7 @@ export async function fetchPublishedArticlesByRubric(rubricSlug, limit = 20) {
   try {
     const params = new URLSearchParams({
       select:
-        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,rubrics!inner(title,slug),profiles(full_name,academic_title),tags(name,slug)',
+        'id,title,slug,summary,reading_time_min,published_at,rubrics!inner(title,slug),profiles(full_name,academic_title),tags(name,slug)',
       status: 'eq.published',
       order: 'published_at.desc',
       limit: String(limit),
