@@ -1,7 +1,6 @@
 import { RUBRICS } from '../data/rubrics.js';
 import {
   fetchPopularTags,
-  fetchPublicTags,
   resolveTag,
   searchPublishedArticles,
 } from '../services/articles.js';
@@ -75,29 +74,16 @@ function feedHeading({ tag, q, tagLabel }) {
   return 'Последни статии';
 }
 
-/**
- * @param {{ path?: string }} [_ctx]
- */
-export async function renderHomePage(_ctx = {}) {
-  const { tag, q } = readFiltersFromUrl();
+function loadingBlock(label = 'Зареждане…') {
+  return `
+    <div class="text-center text-secondary py-4">
+      <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+      <span class="ms-2">${escapeHtml(label)}</span>
+    </div>
+  `;
+}
 
-  let articles = [];
-  let events = [];
-  let popularTags = [];
-
-  try {
-    [articles, events, popularTags] = await Promise.all([
-      searchPublishedArticles({ limit: tag || q ? 40 : 8, tag, q }),
-      fetchUpcomingEvents(3),
-      fetchPopularTags(12),
-    ]);
-  } catch (error) {
-    console.error('renderHomePage fetch failed', error);
-  }
-
-  const matchedTag = resolveTag(tag, popularTags);
-  const tagLabel = matchedTag?.slug || matchedTag?.name || tag;
-
+function renderHero() {
   const rubricStrip = RUBRICS.map(
     (rubric) => `
       <a href="${rubric.path}" class="badge rounded-pill text-bg-light text-decoration-none px-3 py-2">
@@ -129,27 +115,29 @@ export async function renderHomePage(_ctx = {}) {
         </div>
       </div>
     </section>
+  `;
+}
 
+/**
+ * Immediate shell — hero paints before Supabase responds.
+ * @param {{ path?: string }} [_ctx]
+ */
+export async function renderHomePage(_ctx = {}) {
+  const { tag, q } = readFiltersFromUrl();
+
+  return `
+    ${renderHero()}
     <section class="container py-5">
       <div class="row g-4 align-items-start">
         <div class="col-lg-8">
-          <div id="activeFilterWrap">
-            ${renderActiveFilter({ tag, q, tagLabel })}
-          </div>
-          <div id="articlesFeed">
-            ${renderArticlesFeed(articles, {
-              heading: feedHeading({ tag, q, tagLabel }),
-              emptyMessage: emptyMessageFor({ tag, q, tagLabel }),
-            })}
-          </div>
+          <div id="activeFilterWrap"></div>
+          <div id="articlesFeed">${loadingBlock('Зареждане на статии…')}</div>
         </div>
         <div class="col-lg-4">
           <div class="home-sidebar-sticky">
             ${renderSearchWidget(q)}
-            ${renderEventsSidebar(events)}
-            <div id="tagCloudWrap">
-              ${renderTagCloudWidget(popularTags, tag)}
-            </div>
+            <div id="eventsSidebarWrap">${loadingBlock('Зареждане…')}</div>
+            <div id="tagCloudWrap">${loadingBlock('Зареждане…')}</div>
           </div>
         </div>
       </div>
@@ -163,15 +151,28 @@ export async function initHomePage() {
   const feedEl = document.getElementById('articlesFeed');
   const filterWrap = document.getElementById('activeFilterWrap');
   const tagCloudWrap = document.getElementById('tagCloudWrap');
+  const eventsWrap = document.getElementById('eventsSidebarWrap');
 
   if (!feedEl) return;
 
-  let tags = await fetchPublicTags();
-  let popularTags = await fetchPopularTags(12);
+  const initial = readFiltersFromUrl();
+  let popularTags = [];
   let debounceTimer = 0;
 
+  async function loadSidebar() {
+    const [events, tags] = await Promise.all([
+      fetchUpcomingEvents(3),
+      fetchPopularTags(12),
+    ]);
+    popularTags = tags;
+    if (eventsWrap) eventsWrap.innerHTML = renderEventsSidebar(events);
+    if (tagCloudWrap) {
+      tagCloudWrap.innerHTML = renderTagCloudWidget(popularTags, initial.tag);
+    }
+  }
+
   async function applyFilters({ tag = '', q = '', pushUrl = true } = {}) {
-    const matchedTag = resolveTag(tag, tags.length ? tags : popularTags);
+    const matchedTag = resolveTag(tag, popularTags);
     const tagSlug = matchedTag?.slug || tag;
     const tagLabel = matchedTag?.slug || matchedTag?.name || tagSlug;
 
@@ -184,7 +185,7 @@ export async function initHomePage() {
       bindClearButton();
     }
 
-    if (tagCloudWrap) {
+    if (tagCloudWrap && popularTags.length) {
       tagCloudWrap.innerHTML = renderTagCloudWidget(popularTags, tagSlug);
     }
 
@@ -192,12 +193,7 @@ export async function initHomePage() {
       input.value = q;
     }
 
-    feedEl.innerHTML = `
-      <div class="text-center text-secondary py-4">
-        <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
-        <span class="ms-2">Търсене…</span>
-      </div>
-    `;
+    feedEl.innerHTML = loadingBlock('Търсене…');
 
     const articles = await searchPublishedArticles({
       limit: tagSlug || q ? 40 : 8,
@@ -218,7 +214,11 @@ export async function initHomePage() {
     });
   }
 
-  bindClearButton();
+  // Parallel: articles feed + sidebar (events + tags) — one round-trip each
+  await Promise.all([
+    applyFilters({ tag: initial.tag, q: initial.q, pushUrl: false }),
+    loadSidebar(),
+  ]);
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();

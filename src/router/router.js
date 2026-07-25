@@ -2,7 +2,7 @@
  * MPA layout bootstrap — assembles Header, Page View, and Footer
  * for the current HTML entry (body[data-page]).
  */
-import { getPage } from './pages.js';
+import { getPageMeta, loadPage } from './pages.js';
 import { renderHeader } from '../components/Header.js';
 import { renderFooter } from '../components/Footer.js';
 
@@ -19,12 +19,12 @@ export async function mountPage() {
   }
 
   const pageId = document.body.dataset.page || 'home';
-  const page = getPage(pageId);
+  const meta = getPageMeta(pageId);
 
-  headerEl.innerHTML = renderHeader(page?.path || '/index.html');
-  footerEl.innerHTML = renderFooter(page?.path || '/index.html');
+  headerEl.innerHTML = renderHeader(meta?.path || '/index.html');
+  footerEl.innerHTML = renderFooter(meta?.path || '/index.html');
 
-  if (!page) {
+  if (!meta) {
     document.title = 'Страницата не е намерена · Crescendo';
     pageEl.innerHTML = `
       <section class="container py-5">
@@ -36,13 +36,16 @@ export async function mountPage() {
     return;
   }
 
-  document.title = `${page.title} · Crescendo`;
+  document.title = `${meta.title} · Crescendo`;
   pageEl.innerHTML = `
     <div class="container py-5 text-center text-secondary">
       <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
       <span class="ms-2">Зареждане…</span>
     </div>
   `;
+
+  const page = await loadPage(pageId);
+  if (!page) return;
 
   let renderContext = { path: page.path, pageId, page };
 
@@ -71,7 +74,10 @@ export async function mountPage() {
     pageEl.innerHTML = html;
 
     if (page.init) {
-      await page.init(renderContext);
+      // Do not block paint on init — run in background
+      Promise.resolve(page.init(renderContext)).catch((error) => {
+        console.error('page.init', error);
+      });
     }
   } catch (error) {
     console.error('mountPage', error);

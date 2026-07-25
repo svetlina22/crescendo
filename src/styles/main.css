@@ -113,6 +113,10 @@ body {
   display: block;
 }
 
+.event-card__placeholder {
+  height: 140px;
+}
+
 .event-card__title {
   color: var(--crescendo-ink);
   line-height: 1.35;

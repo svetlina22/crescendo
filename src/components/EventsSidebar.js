@@ -13,13 +13,9 @@ const BG_MONTHS_SHORT = [
   'ДЕК',
 ];
 
-/** Curated academic / concert photos (Unsplash) for event cards */
-const EVENT_IMAGES = [
-  'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=640&h=360&q=80',
-  'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=640&h=360&q=80',
-  'https://images.unsplash.com/photo-1514320291840-b9a56c6f3c5a?auto=format&fit=crop&w=640&h=360&q=80',
-  'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=640&h=360&q=80',
-];
+/** Local placeholder — avoid slow Unsplash fallbacks on the home sidebar */
+const EVENT_PLACEHOLDER =
+  '<div class="event-card__placeholder d-flex align-items-center justify-content-center bg-light text-secondary rounded" aria-hidden="true"><i class="bi bi-calendar-event fs-3"></i></div>';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -54,9 +50,21 @@ function eventHref(event) {
   return '/events.html';
 }
 
-function eventImage(event, index) {
-  if (event.image_url) return escapeHtml(event.image_url);
-  return EVENT_IMAGES[index % EVENT_IMAGES.length];
+function eventMedia(event) {
+  if (event.image_url) {
+    return `
+      <img
+        src="${escapeHtml(event.image_url)}"
+        alt=""
+        class="event-card__img w-100"
+        loading="lazy"
+        decoding="async"
+        width="640"
+        height="150"
+      />
+    `;
+  }
+  return EVENT_PLACEHOLDER;
 }
 
 /**
@@ -71,7 +79,7 @@ export function renderEventsSidebar(events = []) {
         </p>
       `
       : events
-          .map((event, index) => {
+          .map((event) => {
             const href = eventHref(event);
             const external = Boolean(event.registration_link);
             return `
@@ -82,14 +90,7 @@ export function renderEventsSidebar(events = []) {
                   ${external ? 'target="_blank" rel="noopener noreferrer"' : ''}
                 >
                   <div class="event-card__media rounded overflow-hidden mb-2">
-                    <img
-                      src="${eventImage(event, index)}"
-                      alt=""
-                      class="event-card__img w-100"
-                      loading="lazy"
-                      width="640"
-                      height="150"
-                    />
+                    ${eventMedia(event)}
                   </div>
                   <span class="badge text-bg-crescendo-soft mb-2">
                     ${escapeHtml(formatDateBadge(event.date))}

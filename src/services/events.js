@@ -1,8 +1,8 @@
 import { isSupabaseConfigured, supabaseRest } from '../config/supabase.js';
 import { getSupabase } from './auth.js';
 
-const EVENT_SELECT =
-  'id,title,description,date,end_date,location,event_type,registration_link,organizer,image_url,status,created_at';
+const EVENT_SIDEBAR_SELECT =
+  'id,title,date,location,event_type,registration_link,image_url,status';
 
 /**
  * Upcoming / CFP events ordered by date ascending.
@@ -14,7 +14,7 @@ export async function fetchUpcomingEvents(limit = 3) {
 
   try {
     const params = new URLSearchParams({
-      select: EVENT_SELECT,
+      select: EVENT_SIDEBAR_SELECT,
       status: 'in.(upcoming,call_for_papers)',
       order: 'date.asc',
       limit: String(limit),

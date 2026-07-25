@@ -1,7 +1,7 @@
 import { isSupabaseConfigured, supabaseRest, supabaseRestAuth } from '../config/supabase.js';
 
 const PUBLIC_ARTICLE_LIST_SELECT =
-  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,rubrics(title,slug),profiles(full_name,academic_title),tags(name,slug)';
+  'id,title,slug,summary,reading_time_min,published_at,rubrics(title,slug),profiles(full_name,academic_title),tags(name,slug)';
 
 const PUBLIC_ARTICLE_DETAIL_SELECT =
   'id,title,slug,summary,content,reading_time_min,published_at,cover_image_url,rubrics(id,title,slug),profiles(full_name,academic_title),tags(name,slug)';
@@ -99,7 +99,7 @@ export async function searchPublishedArticles({ limit = 24, tag = '', q = '' } =
     if (tagSlug) {
       params.set(
         'select',
-        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,rubrics(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)',
+        'id,title,slug,summary,reading_time_min,published_at,rubrics(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)',
       );
       params.set('tags.slug', `eq.${tagSlug}`);
     } else {

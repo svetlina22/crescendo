@@ -1,62 +1,125 @@
-import { renderHomePage, initHomePage } from '../pages/home.js';
-import { renderBenefitsPage } from '../pages/benefits.js';
-import { renderPoliciesPage } from '../pages/policies.js';
-import { renderPracticesPage } from '../pages/practices.js';
-import { renderElSistemaPage } from '../pages/elSistema.js';
-import { renderResonancePage } from '../pages/resonance.js';
-import { renderEventsPage } from '../pages/events.js';
-import { renderLoginPage, initLoginPage } from '../pages/login.js';
-import { renderDashboardPage, initDashboardPage } from '../pages/dashboard.js';
-import { renderAddEventPage, initAddEventPage } from '../pages/addEvent.js';
-import { renderArticlePage } from '../pages/article.js';
-import { renderAboutPage } from '../pages/about.js';
+/**
+ * MPA page registry — keyed by body[data-page].
+ * Each page is loaded on demand to keep the initial JS bundle small.
+ */
 
-/** MPA page registry — keyed by body[data-page] */
+/** @typedef {{ title: string, path: string, load: () => Promise<{ render: Function, init?: Function }> }} PageMeta */
+
+/** @type {Record<string, PageMeta>} */
 export const pages = {
-  home: { title: 'Начало', path: '/index.html', render: renderHomePage, init: initHomePage },
-  benefits: { title: 'Ползи', path: '/benefits.html', render: renderBenefitsPage },
-  policies: { title: 'Политики', path: '/policies.html', render: renderPoliciesPage },
-  practices: { title: 'Практики', path: '/practices.html', render: renderPracticesPage },
+  home: {
+    title: 'Начало',
+    path: '/index.html',
+    load: async () => {
+      const m = await import('../pages/home.js');
+      return { render: m.renderHomePage, init: m.initHomePage };
+    },
+  },
+  benefits: {
+    title: 'Ползи',
+    path: '/benefits.html',
+    load: async () => {
+      const m = await import('../pages/benefits.js');
+      return { render: m.renderBenefitsPage };
+    },
+  },
+  policies: {
+    title: 'Политики',
+    path: '/policies.html',
+    load: async () => {
+      const m = await import('../pages/policies.js');
+      return { render: m.renderPoliciesPage };
+    },
+  },
+  practices: {
+    title: 'Практики',
+    path: '/practices.html',
+    load: async () => {
+      const m = await import('../pages/practices.js');
+      return { render: m.renderPracticesPage };
+    },
+  },
   'el-sistema': {
     title: 'Ел Система',
     path: '/el-sistema.html',
-    render: renderElSistemaPage,
+    load: async () => {
+      const m = await import('../pages/elSistema.js');
+      return { render: m.renderElSistemaPage };
+    },
   },
   resonance: {
     title: 'Резонанс',
     path: '/resonance.html',
-    render: renderResonancePage,
+    load: async () => {
+      const m = await import('../pages/resonance.js');
+      return { render: m.renderResonancePage };
+    },
   },
   events: {
     title: 'Събития',
     path: '/events.html',
-    render: renderEventsPage,
+    load: async () => {
+      const m = await import('../pages/events.js');
+      return { render: m.renderEventsPage };
+    },
   },
   article: {
     title: 'Статия',
     path: '/article.html',
-    render: renderArticlePage,
+    load: async () => {
+      const m = await import('../pages/article.js');
+      return { render: m.renderArticlePage };
+    },
   },
   about: {
     title: 'За нас',
     path: '/about.html',
-    render: renderAboutPage,
+    load: async () => {
+      const m = await import('../pages/about.js');
+      return { render: m.renderAboutPage };
+    },
   },
-  login: { title: 'Вход', path: '/login.html', render: renderLoginPage, init: initLoginPage },
+  login: {
+    title: 'Вход',
+    path: '/login.html',
+    load: async () => {
+      const m = await import('../pages/login.js');
+      return { render: m.renderLoginPage, init: m.initLoginPage };
+    },
+  },
   dashboard: {
     title: 'Панел',
     path: '/dashboard.html',
-    render: renderDashboardPage,
-    init: initDashboardPage,
+    load: async () => {
+      const m = await import('../pages/dashboard.js');
+      return { render: m.renderDashboardPage, init: m.initDashboardPage };
+    },
   },
   'add-event': {
     title: 'Добавяне на събитие',
     path: '/add-event.html',
-    render: renderAddEventPage,
-    init: initAddEventPage,
+    load: async () => {
+      const m = await import('../pages/addEvent.js');
+      return { render: m.renderAddEventPage, init: m.initAddEventPage };
+    },
   },
 };
 
-export function getPage(pageId) {
+/**
+ * @param {string} pageId
+ * @returns {PageMeta | null}
+ */
+export function getPageMeta(pageId) {
   return pages[pageId] ?? null;
+}
+
+/**
+ * @param {string} pageId
+ * @returns {Promise<{ title: string, path: string, render: Function, init?: Function } | null>}
+ */
+export async function loadPage(pageId) {
+  const meta = getPageMeta(pageId);
+  if (!meta) return null;
+  const handlers = await meta.load();
+  return { title: meta.title, path: meta.path, ...handlers };
 }
