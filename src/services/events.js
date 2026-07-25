@@ -29,8 +29,35 @@ export async function fetchUpcomingEvents(limit = 3) {
 }
 
 /**
- * All events for the calendar page (date ascending).
- * Equivalent to: SELECT * FROM events ORDER BY date ASC
+ * Upcoming / CFP first (soonest date first), then past (most recent first).
+ * @param {Array} events
+ * @returns {Array}
+ */
+function sortEventsUpcomingToPast(events) {
+  const now = Date.now();
+
+  const isPast = (event) => {
+    if (event.status === 'past') return true;
+    if (event.status === 'upcoming' || event.status === 'call_for_papers') return false;
+    const time = new Date(event.date).getTime();
+    return Number.isFinite(time) && time < now;
+  };
+
+  return [...events].sort((a, b) => {
+    const aPast = isPast(a);
+    const bPast = isPast(b);
+    if (aPast !== bPast) return aPast ? 1 : -1;
+
+    const ta = new Date(a.date).getTime() || 0;
+    const tb = new Date(b.date).getTime() || 0;
+    // Upcoming: soonest first; past: most recent first
+    return aPast ? tb - ta : ta - tb;
+  });
+}
+
+/**
+ * All events for the calendar page.
+ * Order: upcoming → past; soonest upcoming first.
  * @returns {Promise<Array>}
  */
 export async function fetchEvents() {
@@ -43,7 +70,7 @@ export async function fetchEvents() {
     });
 
     const data = await supabaseRest(`/rest/v1/events?${params}`);
-    return Array.isArray(data) ? data : [];
+    return sortEventsUpcomingToPast(Array.isArray(data) ? data : []);
   } catch (error) {
     console.error('fetchEvents', error);
     return [];
