@@ -47,7 +47,7 @@ export async function mountPage() {
   let renderContext = { path: page.path, pageId, page };
 
   if (PROTECTED_PAGES.has(pageId)) {
-    const { getSession } = await import('../services/auth.js');
+    const { getSession, getUserProfile } = await import('../services/auth.js');
     const session = await getSession();
 
     if (!session) {
@@ -55,10 +55,14 @@ export async function mountPage() {
       return;
     }
 
+    const profile = await getUserProfile(session.user, session.access_token);
+
     renderContext = {
       ...renderContext,
       user: session.user,
       accessToken: session.access_token,
+      role: profile.role,
+      profile,
     };
   }
 
@@ -66,11 +70,8 @@ export async function mountPage() {
     const html = await page.render(renderContext);
     pageEl.innerHTML = html;
 
-    if (pageId === 'login' && page.init) {
-      await page.init();
-    }
-    if (pageId === 'dashboard' && page.init) {
-      await page.init();
+    if (page.init) {
+      await page.init(renderContext);
     }
   } catch (error) {
     console.error('mountPage', error);

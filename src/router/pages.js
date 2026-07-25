@@ -31,7 +31,7 @@ export const pages = {
   },
   login: { title: 'Вход', path: '/login.html', render: renderLoginPage, init: initLoginPage },
   dashboard: {
-    title: 'Моите статии',
+    title: 'Панел',
     path: '/dashboard.html',
     render: renderDashboardPage,
     init: initDashboardPage,

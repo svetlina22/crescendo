@@ -42,14 +42,14 @@ You are an expert full-stack developer. Your task is to build and maintain the *
 - Operate in the `public` schema with these core entities:
   - `profiles` — linked to `auth.users`; fields include `full_name`, `avatar_url`, and `role`: `'admin' | 'author'`
   - `categories` — the 5 pillars of the platform
-  - `posts` — articles/events with `status`: `'draft' | 'published'`
+  - `posts` — articles/events with `status`: `'draft' | 'pending' | 'published'`
 - Do **not** reuse or reference quiz/exam-preparation tables from previous contexts.
 
 ## RLS — Security and Authorization
 
 - **Guests:** Read-only access to posts with `status = 'published'`.
-- **Authors:** Can CREATE and UPDATE their own posts, locked to `status = 'draft'`. Authors cannot set `status = 'published'`, cannot update other authors' posts, and cannot delete posts.
-- **Admins:** Full control. Only admins can publish (`status = 'published'`), edit any post, or delete posts.
+- **Authors:** Can CREATE and UPDATE their own posts with `status` in (`'draft'`, `'pending'`). Authors cannot set `status = 'published'`, cannot update other authors' posts, and can delete only their own unpublished posts.
+- **Admins:** Full control. Only admins can publish (`status = 'published'`), unpublish, edit any post, or delete any post.
 
 # Workflow Rules
 
