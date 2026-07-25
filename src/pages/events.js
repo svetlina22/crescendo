@@ -23,6 +23,7 @@ const SAMPLE_EVENTS = [
   },
 ];
 
+/** Календар на събитията — отделно от рубриката „Резонанс“ */
 export async function renderEventsPage() {
   const eventRows = SAMPLE_EVENTS.map(
     (event) => `
@@ -45,50 +46,35 @@ export async function renderEventsPage() {
   return `
     <section class="container py-5">
       <div class="mb-4">
-        <p class="text-uppercase small fw-semibold text-secondary mb-2">Рубрика</p>
+        <p class="text-uppercase small fw-semibold text-secondary mb-2">Календар</p>
         <h1 class="h2 mb-2">
           <i class="bi bi-calendar-event me-2 text-secondary" aria-hidden="true"></i>
-          Актуално / Събития
+          Събития
         </h1>
         <p class="lead text-secondary mb-0">
-          Новини, редакционни материали и календар на събития.
+          Дати, локации и формат на предстоящи и минали събития.
+          Анонси и отзиви към тях са в рубриката
+          <a href="/resonance.html">Резонанс</a>.
         </p>
       </div>
 
-      <div class="row g-4">
-        <div class="col-lg-5">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <h2 class="h5 mb-3">Новини и редакционни материали</h2>
-              <p class="text-secondary mb-0">
-                Тук ще се показва списък със статии от рубриката „Актуално“.
-                Засега няма публикувани материали.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-7">
-          <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-              <h2 class="h5 mb-3">Календар на събитията</h2>
-              <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th scope="col">Дата</th>
-                      <th scope="col">Събитие</th>
-                      <th scope="col">Локация/Формат</th>
-                      <th scope="col">Статус</th>
-                      <th scope="col">Действие</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${eventRows}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Дата</th>
+                  <th scope="col">Събитие</th>
+                  <th scope="col">Локация/Формат</th>
+                  <th scope="col">Статус</th>
+                  <th scope="col">Действие</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${eventRows}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

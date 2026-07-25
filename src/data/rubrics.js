@@ -37,13 +37,13 @@ export const RUBRICS = [
       'Социални музикални програми и методологии на El Sistema.',
   },
   {
-    slug: 'events',
-    path: '/events.html',
-    page: 'events',
-    title: 'Актуално / Събития',
-    icon: 'bi-calendar-event',
+    slug: 'resonance',
+    path: '/resonance.html',
+    page: 'resonance',
+    title: 'Резонанс',
+    icon: 'bi-broadcast',
     description:
-      'Новини, редакционни материали и календар на събития.',
+      'Анонси, отзиви и редакционни материали от академичния музикален живот.',
   },
 ];
 

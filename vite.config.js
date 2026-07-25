@@ -24,6 +24,7 @@ export default defineConfig({
         policies: resolve(__dirname, 'policies.html'),
         practices: resolve(__dirname, 'practices.html'),
         elSistema: resolve(__dirname, 'el-sistema.html'),
+        resonance: resolve(__dirname, 'resonance.html'),
         events: resolve(__dirname, 'events.html'),
         login: resolve(__dirname, 'login.html'),
         dashboard: resolve(__dirname, 'dashboard.html'),

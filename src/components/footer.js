@@ -34,6 +34,7 @@ export function renderFooter() {
           <div class="col-md-3">
             <h2 class="h6 text-white mb-2">Достъп</h2>
             <ul class="list-unstyled small mb-0 d-flex flex-column gap-1">
+              <li><a href="/events.html">Събития</a></li>
               <li><a href="/login.html">Вход</a></li>
               <li><a href="/dashboard.html">Табло</a></li>
             </ul>

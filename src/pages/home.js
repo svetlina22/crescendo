@@ -35,7 +35,7 @@ export async function renderHomePage() {
           </div>
           <div class="col-lg-4">
             <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-              <a href="/events.html" class="btn btn-crescendo btn-lg">Актуално</a>
+              <a href="/resonance.html" class="btn btn-crescendo btn-lg">Резонанс</a>
               <a href="/login.html" class="btn btn-outline-secondary btn-lg">Вход</a>
             </div>
           </div>

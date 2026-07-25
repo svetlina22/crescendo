@@ -3,6 +3,7 @@ import { renderBenefitsPage } from '../pages/benefits.js';
 import { renderPoliciesPage } from '../pages/policies.js';
 import { renderPracticesPage } from '../pages/practices.js';
 import { renderElSistemaPage } from '../pages/elSistema.js';
+import { renderResonancePage } from '../pages/resonance.js';
 import { renderEventsPage } from '../pages/events.js';
 import { renderLoginPage } from '../pages/login.js';
 import { renderDashboardPage } from '../pages/dashboard.js';
@@ -18,8 +19,13 @@ export const pages = {
     path: '/el-sistema.html',
     render: renderElSistemaPage,
   },
+  resonance: {
+    title: 'Резонанс',
+    path: '/resonance.html',
+    render: renderResonancePage,
+  },
   events: {
-    title: 'Актуално / Събития',
+    title: 'Събития',
     path: '/events.html',
     render: renderEventsPage,
   },
