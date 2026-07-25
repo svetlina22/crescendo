@@ -5,10 +5,17 @@ import { renderArticlesFeed } from '../components/ArticlesFeed.js';
 import { renderEventsSidebar } from '../components/EventsSidebar.js';
 
 export async function renderHomePage() {
-  const [articles, events] = await Promise.all([
-    fetchPublishedArticles(8),
-    fetchUpcomingEvents(4),
-  ]);
+  let articles = [];
+  let events = [];
+
+  try {
+    [articles, events] = await Promise.all([
+      fetchPublishedArticles(8),
+      fetchUpcomingEvents(4),
+    ]);
+  } catch (error) {
+    console.error('renderHomePage fetch failed', error);
+  }
 
   const rubricStrip = RUBRICS.map(
     (rubric) => `

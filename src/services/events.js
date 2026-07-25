@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from '../config/supabase.js';
+import { isSupabaseConfigured, supabaseRest } from '../config/supabase.js';
 
 /**
  * Upcoming events: start_date >= now, ascending, max 4.
@@ -6,23 +6,21 @@ import { supabase, isSupabaseConfigured } from '../config/supabase.js';
  * @returns {Promise<Array>}
  */
 export async function fetchUpcomingEvents(limit = 4) {
-  if (!isSupabaseConfigured() || !supabase) {
-    return [];
-  }
+  if (!isSupabaseConfigured()) return [];
 
-  const { data, error } = await supabase
-    .from('events')
-    .select(
-      'id, title, description, start_date, end_date, location, event_type, registration_link, organizer',
-    )
-    .gte('start_date', new Date().toISOString())
-    .order('start_date', { ascending: true })
-    .limit(limit);
+  try {
+    const params = new URLSearchParams({
+      select:
+        'id,title,description,start_date,end_date,location,event_type,registration_link,organizer',
+      start_date: `gte.${new Date().toISOString()}`,
+      order: 'start_date.asc',
+      limit: String(limit),
+    });
 
-  if (error) {
+    const data = await supabaseRest(`/rest/v1/events?${params}`);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
     console.error('fetchUpcomingEvents', error);
     return [];
   }
-
-  return data ?? [];
 }
