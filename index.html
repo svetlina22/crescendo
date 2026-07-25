@@ -2,17 +2,140 @@
 <html lang="bg">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Crescendo — академична платформа за музикално образование"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <meta name="description" content="Crescendo — музикално образование, практики и вдъхновение" />
     <title>Начало · Crescendo</title>
   </head>
   <body data-page="home">
     <div id="app" class="d-flex flex-column min-vh-100">
       <div id="header"></div>
-      <main id="page" class="flex-grow-1"></main>
+
+      <!-- ═══ РЕДАКТИРАЙТЕ ТЕКСТОВЕТЕ ДИРЕКТНО ТУК ═══ -->
+      <main id="page" class="flex-grow-1" data-static="true">
+
+        <section class="hero-stage">
+          <div
+            class="hero-stage__photo"
+            style="background-image:url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1920&h=1080&q=80')"
+          ></div>
+          <div class="hero-stage__shade"></div>
+          <div class="container hero-stage__content">
+            <p class="hero-stage__eyebrow">
+              <i class="bi bi-vinyl" aria-hidden="true"></i>
+              Музикално образование
+            </p>
+            <h1 class="hero-stage__title">Cre<em>scendo</em></h1>
+            <p class="hero-stage__lead">
+              Място за информация и вдъхновение в музикалното образование —
+              практики за класната стая, политики за лидери и истории от сцената.
+            </p>
+            <div class="hero-stage__actions">
+              <a href="#articles" class="btn btn-crescendo btn-lg">Разгледай материалите</a>
+              <a href="/events.html" class="btn btn-hero-outline btn-lg">Събития</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="rubric-showcase">
+          <div class="container">
+            <div class="rubric-showcase__head">
+              <h2>Избери своя път</h2>
+              <a href="/about.html" class="fw-semibold text-decoration-none">За платформата →</a>
+            </div>
+            <div class="row g-3">
+              <div class="col-6 col-lg">
+                <a href="/benefits.html" class="rubric-tile rubric-tile--inspiration">
+                  <div class="rubric-tile__img" style="background-image:url('https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=800&h=600&q=80')"></div>
+                  <div class="rubric-tile__shade"></div>
+                  <div class="rubric-tile__body">
+                    <span class="rubric-tile__icon"><i class="bi bi-lightbulb"></i></span>
+                    <p class="rubric-tile__title">Ползи</p>
+                    <p class="rubric-tile__desc">Когнитивни, социални и академични ползи от музикалното образование.</p>
+                  </div>
+                </a>
+              </div>
+              <div class="col-6 col-lg">
+                <a href="/policies.html" class="rubric-tile rubric-tile--policy">
+                  <div class="rubric-tile__img" style="background-image:url('https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&h=600&q=80')"></div>
+                  <div class="rubric-tile__shade"></div>
+                  <div class="rubric-tile__body">
+                    <span class="rubric-tile__icon"><i class="bi bi-bank"></i></span>
+                    <p class="rubric-tile__title">Политики</p>
+                    <p class="rubric-tile__desc">Политики, управление и реформи в музикалното образование.</p>
+                  </div>
+                </a>
+              </div>
+              <div class="col-6 col-lg">
+                <a href="/practices.html" class="rubric-tile rubric-tile--practice">
+                  <div class="rubric-tile__img" style="background-image:url('https://images.unsplash.com/photo-1514320291840-b9a56c6f3c5a?auto=format&fit=crop&w=800&h=600&q=80')"></div>
+                  <div class="rubric-tile__shade"></div>
+                  <div class="rubric-tile__body">
+                    <span class="rubric-tile__icon"><i class="bi bi-music-note-beamed"></i></span>
+                    <p class="rubric-tile__title">Практики</p>
+                    <p class="rubric-tile__desc">Педагогически методи, подходи и практически ръководства.</p>
+                  </div>
+                </a>
+              </div>
+              <div class="col-6 col-lg">
+                <a href="/el-sistema.html" class="rubric-tile rubric-tile--practice">
+                  <div class="rubric-tile__img" style="background-image:url('https://images.unsplash.com/photo-1513883049090-d0b7439799bf?auto=format&fit=crop&w=800&h=600&q=80')"></div>
+                  <div class="rubric-tile__shade"></div>
+                  <div class="rubric-tile__body">
+                    <span class="rubric-tile__icon"><i class="bi bi-people"></i></span>
+                    <p class="rubric-tile__title">Ел Система</p>
+                    <p class="rubric-tile__desc">Социални музикални програми и методологии на El Sistema.</p>
+                  </div>
+                </a>
+              </div>
+              <div class="col-6 col-lg">
+                <a href="/resonance.html" class="rubric-tile rubric-tile--event">
+                  <div class="rubric-tile__img" style="background-image:url('https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&h=600&q=80')"></div>
+                  <div class="rubric-tile__shade"></div>
+                  <div class="rubric-tile__body">
+                    <span class="rubric-tile__icon"><i class="bi bi-broadcast"></i></span>
+                    <p class="rubric-tile__title">Резонанс</p>
+                    <p class="rubric-tile__desc">Анонси, отзиви и редакционни материали от академичния музикален живот.</p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="container py-5" id="articles">
+          <div class="row g-4 align-items-start">
+            <div class="col-lg-8">
+              <div id="activeFilterWrap"></div>
+              <div id="articlesFeed">
+                <div class="text-center text-secondary py-5">
+                  <div class="spinner-border spinner-border-sm"></div>
+                  <span class="ms-2">Зареждане на статии…</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="home-sidebar-sticky">
+                <aside class="sidebar-panel">
+                  <h2 class="widget-title">Търсене</h2>
+                  <form id="articleSearchForm" role="search">
+                    <label for="articleSearchInput" class="visually-hidden">Търсене</label>
+                    <div class="input-group">
+                      <span class="input-group-text border-0 bg-light"><i class="bi bi-search"></i></span>
+                      <input type="search" class="form-control border-0 bg-light" id="articleSearchInput" name="q" placeholder="Ключова дума…" autocomplete="off" />
+                    </div>
+                  </form>
+                </aside>
+                <div id="eventsSidebarWrap">
+                  <div class="text-center text-secondary py-3"><span class="spinner-border spinner-border-sm"></span></div>
+                </div>
+                <div id="tagCloudWrap">
+                  <div class="text-center text-secondary py-3"><span class="spinner-border spinner-border-sm"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
       <div id="footer"></div>
     </div>
     <script type="module" src="/src/main.js"></script>

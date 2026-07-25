@@ -1,67 +1,78 @@
 /**
  * MPA page registry — keyed by body[data-page].
- * Each page is loaded on demand to keep the initial JS bundle small.
+ * Pages with static HTML in #page use htmlFirst: true (text editable in .html files).
  */
 
-/** @typedef {{ title: string, path: string, load: () => Promise<{ render: Function, init?: Function }> }} PageMeta */
-
-/** @type {Record<string, PageMeta>} */
+/** @type {Record<string, { title: string, path: string, htmlFirst?: boolean, load: Function }>} */
 export const pages = {
   home: {
     title: 'Начало',
     path: '/index.html',
+    htmlFirst: true,
     load: async () => {
       const m = await import('../pages/home.js');
-      return { render: m.renderHomePage, init: m.initHomePage };
+      return { init: m.initHomePage };
     },
   },
   benefits: {
     title: 'Ползи',
     path: '/benefits.html',
+    htmlFirst: true,
     load: async () => {
-      const m = await import('../pages/benefits.js');
-      return { render: m.renderBenefitsPage };
+      const m = await import('../pages/rubricInit.js');
+      return { init: () => m.initRubricPage('benefits') };
     },
   },
   policies: {
     title: 'Политики',
     path: '/policies.html',
+    htmlFirst: true,
     load: async () => {
-      const m = await import('../pages/policies.js');
-      return { render: m.renderPoliciesPage };
+      const m = await import('../pages/rubricInit.js');
+      return { init: () => m.initRubricPage('policies') };
     },
   },
   practices: {
     title: 'Практики',
     path: '/practices.html',
+    htmlFirst: true,
     load: async () => {
-      const m = await import('../pages/practices.js');
-      return { render: m.renderPracticesPage };
+      const m = await import('../pages/rubricInit.js');
+      return { init: () => m.initRubricPage('practices') };
     },
   },
   'el-sistema': {
     title: 'Ел Система',
     path: '/el-sistema.html',
+    htmlFirst: true,
     load: async () => {
-      const m = await import('../pages/elSistema.js');
-      return { render: m.renderElSistemaPage };
+      const m = await import('../pages/rubricInit.js');
+      return { init: () => m.initRubricPage('el-sistema') };
     },
   },
   resonance: {
     title: 'Резонанс',
     path: '/resonance.html',
+    htmlFirst: true,
     load: async () => {
-      const m = await import('../pages/resonance.js');
-      return { render: m.renderResonancePage };
+      const m = await import('../pages/rubricInit.js');
+      return { init: () => m.initRubricPage('resonance') };
     },
   },
   events: {
     title: 'Събития',
     path: '/events.html',
+    htmlFirst: true,
     load: async () => {
       const m = await import('../pages/events.js');
-      return { render: m.renderEventsPage };
+      return { init: m.initEventsPage };
     },
+  },
+  about: {
+    title: 'За нас',
+    path: '/about.html',
+    htmlFirst: true,
+    load: async () => ({}),
   },
   article: {
     title: 'Статия',
@@ -71,20 +82,13 @@ export const pages = {
       return { render: m.renderArticlePage };
     },
   },
-  about: {
-    title: 'За нас',
-    path: '/about.html',
-    load: async () => {
-      const m = await import('../pages/about.js');
-      return { render: m.renderAboutPage };
-    },
-  },
   login: {
     title: 'Вход',
     path: '/login.html',
+    htmlFirst: true,
     load: async () => {
       const m = await import('../pages/login.js');
-      return { render: m.renderLoginPage, init: m.initLoginPage };
+      return { init: m.initLoginPage };
     },
   },
   dashboard: {
@@ -105,21 +109,13 @@ export const pages = {
   },
 };
 
-/**
- * @param {string} pageId
- * @returns {PageMeta | null}
- */
 export function getPageMeta(pageId) {
   return pages[pageId] ?? null;
 }
 
-/**
- * @param {string} pageId
- * @returns {Promise<{ title: string, path: string, render: Function, init?: Function } | null>}
- */
 export async function loadPage(pageId) {
   const meta = getPageMeta(pageId);
   if (!meta) return null;
   const handlers = await meta.load();
-  return { title: meta.title, path: meta.path, ...handlers };
+  return { title: meta.title, path: meta.path, htmlFirst: meta.htmlFirst, ...handlers };
 }

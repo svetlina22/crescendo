@@ -10,7 +10,7 @@ export function isSupabaseConfigured() {
  * @param {string} path - e.g. /rest/v1/articles?...
  * @param {number} [timeoutMs=20000]
  */
-export async function supabaseRest(path, timeoutMs = 20000) {
+export async function supabaseRest(path, timeoutMs = 10000) {
   if (!isSupabaseConfigured()) {
     throw new Error('Supabase is not configured');
   }

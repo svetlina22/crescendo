@@ -3,12 +3,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Вход за автори и администратори на Crescendo" />
     <title>Вход · Crescendo</title>
   </head>
   <body data-page="login">
     <div id="app" class="d-flex flex-column min-vh-100">
       <div id="header"></div>
-      <main id="page" class="flex-grow-1"></main>
+
+      <main id="page" class="flex-grow-1" data-static="true">
+        <section class="container py-5">
+          <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+              <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                  <h1 class="h3 mb-2">Вход</h1>
+                  <p class="text-secondary small mb-4">
+                    За автори и администратори — достъп до работния панел.
+                  </p>
+                  <div id="sessionNotice" class="alert alert-secondary d-none" role="status"></div>
+                  <div id="loginAlert" class="alert alert-danger d-none" role="alert"></div>
+                  <form id="loginForm" novalidate>
+                    <div class="mb-3">
+                      <label for="loginEmail" class="form-label">Имейл</label>
+                      <input
+                        type="email"
+                        class="form-control"
+                        id="loginEmail"
+                        name="email"
+                        placeholder="имейл@пример.bg"
+                        autocomplete="username"
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="loginPassword" class="form-label">Парола</label>
+                      <input
+                        type="password"
+                        class="form-control"
+                        id="loginPassword"
+                        name="password"
+                        placeholder="••••••"
+                        autocomplete="current-password"
+                      />
+                    </div>
+                    <button type="submit" class="btn btn-crescendo w-100" id="loginSubmit">
+                      Влез
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
       <div id="footer"></div>
     </div>
     <script type="module" src="/src/main.js"></script>

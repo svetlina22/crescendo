@@ -7,7 +7,10 @@ export function renderFooter(activePath = '') {
   const categoryLinks = RUBRICS.map(
     (rubric) => `
       <li>
-        <a href="${rubric.path}">${rubric.title}</a>
+        <a href="${rubric.path}">
+          <i class="bi ${rubric.icon} me-1" aria-hidden="true"></i>
+          ${rubric.title}
+        </a>
       </li>
     `,
   ).join('');
@@ -17,35 +20,46 @@ export function renderFooter(activePath = '') {
       <div class="container">
         <div class="row g-4">
           <div class="col-md-5">
-            <h2 class="h6 text-white mb-2">
-              <i class="bi bi-music-note-beamed me-1" aria-hidden="true"></i>
+            <p class="footer-brand d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-music-note-beamed" aria-hidden="true"></i>
               Crescendo
-            </h2>
+            </p>
+            <p class="footer-tagline mb-3">
+              Място за информация и вдъхновение в музикалното образование.
+            </p>
             <p class="small mb-0">
-              Академична и професионална платформа за изследвания
-              в музикалното образование.
+              Независима дигитална платформа в подкрепа на музикалните
+              педагози, артисти и образователни лидери — практики,
+              иновации и политики за музикалното образование.
             </p>
           </div>
           <div class="col-md-4">
-            <h2 class="h6 text-white mb-2">Рубрики</h2>
-            <ul class="list-unstyled small mb-0 d-flex flex-column gap-1">
+            <h2 class="mb-3">Рубрики</h2>
+            <ul class="list-unstyled small mb-0 d-flex flex-column gap-2">
               ${categoryLinks}
             </ul>
           </div>
           <div class="col-md-3">
-            <h2 class="h6 text-white mb-2">За изданието</h2>
-            <ul class="list-unstyled small mb-0 d-flex flex-column gap-1">
+            <h2 class="mb-3">За изданието</h2>
+            <ul class="list-unstyled small mb-3 d-flex flex-column gap-2">
               <li>
                 <a
                   href="/about.html"
-                  class="${aboutActive ? 'fw-semibold text-white' : ''}"
-                  ${aboutActive ? 'aria-current="page"' : ''}
+                  class="${aboutActive ? 'fw-semibold' : ''}"
+                  ${aboutActive ? 'aria-current="page" style="color:var(--cr-coral)"' : ''}
                 >За нас</a>
               </li>
             </ul>
+            <h2 class="mb-2">Контакти</h2>
+            <p class="small mb-0">
+              <a href="mailto:redakcia@crescendo.bg">
+                <i class="bi bi-envelope me-1" aria-hidden="true"></i>
+                redakcia@crescendo.bg
+              </a>
+            </p>
           </div>
         </div>
-        <hr class="border-secondary opacity-25 my-4" />
+        <hr class="my-4" style="border-color: var(--cr-peach); opacity: 1" />
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
           <p class="small mb-0">
             &copy; ${year} Crescendo. Всички права запазени.

@@ -3,12 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Социални музикални програми и методологии на El Sistema" />
     <title>Ел Система · Crescendo</title>
   </head>
   <body data-page="el-sistema">
     <div id="app" class="d-flex flex-column min-vh-100">
       <div id="header"></div>
-      <main id="page" class="flex-grow-1"></main>
+
+      <main id="page" class="flex-grow-1" data-static="true">
+        <section class="rubric-hero">
+          <div
+            class="rubric-hero__photo"
+            style="background-image:url('https://images.unsplash.com/photo-1513883049090-d0b7439799bf?auto=format&fit=crop&w=1200&h=600&q=80')"
+          ></div>
+          <div class="rubric-hero__shade"></div>
+          <div class="container rubric-hero__content">
+            <span class="badge-cat badge-cat--practice mb-2">
+              <i class="bi bi-people" aria-hidden="true"></i> Рубрика
+            </span>
+            <h1>Ел Система</h1>
+            <p class="lead mb-0">
+              Социални музикални програми и методологии на El Sistema.
+            </p>
+          </div>
+        </section>
+
+        <section class="container pb-5">
+          <div id="articlesList">
+            <div class="text-center text-secondary py-4">
+              <div class="spinner-border spinner-border-sm"></div>
+              <span class="ms-2">Зареждане на статии…</span>
+            </div>
+          </div>
+          <p id="articlesEmptyMessage" class="visually-hidden">
+            Тук ще се показват материали за социални музикални програми и методологиите на El Sistema.
+          </p>
+        </section>
+      </main>
+
       <div id="footer"></div>
     </div>
     <script type="module" src="/src/main.js"></script>

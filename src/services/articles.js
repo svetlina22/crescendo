@@ -1,7 +1,7 @@
 import { isSupabaseConfigured, supabaseRest, supabaseRestAuth } from '../config/supabase.js';
 
 const PUBLIC_ARTICLE_LIST_SELECT =
-  'id,title,slug,summary,reading_time_min,published_at,rubrics(title,slug),profiles(full_name,academic_title),tags(name,slug)';
+  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,rubrics(title,slug),profiles(full_name,academic_title),tags(name,slug)';
 
 const PUBLIC_ARTICLE_DETAIL_SELECT =
   'id,title,slug,summary,content,reading_time_min,published_at,cover_image_url,rubrics(id,title,slug),profiles(full_name,academic_title),tags(name,slug)';
@@ -99,7 +99,7 @@ export async function searchPublishedArticles({ limit = 24, tag = '', q = '' } =
     if (tagSlug) {
       params.set(
         'select',
-        'id,title,slug,summary,reading_time_min,published_at,rubrics(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)',
+        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,rubrics(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)',
       );
       params.set('tags.slug', `eq.${tagSlug}`);
     } else {
@@ -147,27 +147,14 @@ export async function fetchPopularTags(limit = 12) {
   if (!isSupabaseConfigured()) return [];
 
   try {
-    const params = new URLSearchParams({
-      select: 'name,slug,article_tags(count)',
-      order: 'name.asc',
-    });
-    const data = await supabaseRest(`/rest/v1/tags?${params}`);
-    if (!Array.isArray(data)) return [];
-
-    return data
-      .map((row) => {
-        const countRow = Array.isArray(row.article_tags) ? row.article_tags[0] : null;
-        const uses = Number(countRow?.count ?? 0);
-        return { name: row.name, slug: row.slug, uses };
-      })
-      .filter((t) => t.slug && t.uses > 0)
-      .sort((a, b) => b.uses - a.uses || a.name.localeCompare(b.name, 'bg'))
-      .slice(0, limit);
+    const tags = await fetchPublicTags();
+    if (tags.length) {
+      return tags.slice(0, limit).map((t) => ({ ...t, uses: 0 }));
+    }
+    return [];
   } catch (error) {
     console.error('fetchPopularTags', error);
-    return fetchPublicTags().then((tags) =>
-      tags.slice(0, limit).map((t) => ({ ...t, uses: 0 })),
-    );
+    return [];
   }
 }
 
@@ -223,7 +210,7 @@ export async function fetchPublishedArticlesByRubric(rubricSlug, limit = 20) {
   try {
     const params = new URLSearchParams({
       select:
-        'id,title,slug,summary,reading_time_min,published_at,rubrics!inner(title,slug),profiles(full_name,academic_title),tags(name,slug)',
+        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,rubrics!inner(title,slug),profiles(full_name,academic_title),tags(name,slug)',
       status: 'eq.published',
       order: 'published_at.desc',
       limit: String(limit),

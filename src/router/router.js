@@ -1,12 +1,26 @@
 /**
- * MPA layout bootstrap — assembles Header, Page View, and Footer
- * for the current HTML entry (body[data-page]).
+ * MPA layout bootstrap — Header/Footer + page render or HTML-first init.
  */
 import { getPageMeta, loadPage } from './pages.js';
 import { renderHeader } from '../components/Header.js';
 import { renderFooter } from '../components/Footer.js';
 
 const PROTECTED_PAGES = new Set(['dashboard', 'add-event']);
+
+function showPageError(pageEl, error, htmlFirst) {
+  const message = String(error?.message || error);
+  const alertHtml = `
+    <div class="alert alert-danger ${htmlFirst ? 'm-3' : ''}" role="alert">
+      Част от страницата не можа да се зареди.
+      <pre class="small mb-0 mt-2">${message}</pre>
+    </div>`;
+
+  if (htmlFirst) {
+    pageEl.insertAdjacentHTML('afterbegin', alertHtml);
+  } else {
+    pageEl.innerHTML = `<section class="container py-5">${alertHtml}</section>`;
+  }
+}
 
 export async function mountPage() {
   const headerEl = document.querySelector('#header');
@@ -37,14 +51,28 @@ export async function mountPage() {
   }
 
   document.title = `${meta.title} · Crescendo`;
-  pageEl.innerHTML = `
-    <div class="container py-5 text-center text-secondary">
-      <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
-      <span class="ms-2">Зареждане…</span>
-    </div>
-  `;
 
-  const page = await loadPage(pageId);
+  const htmlFirst =
+    meta.htmlFirst === true || pageEl.dataset.static === 'true' || pageEl.children.length > 0;
+
+  let page;
+  try {
+    page = await loadPage(pageId);
+  } catch (error) {
+    console.error('loadPage', error);
+    if (!htmlFirst) {
+      pageEl.innerHTML = `
+        <section class="container py-5">
+          <div class="alert alert-danger" role="alert">
+            Страницата не можа да се зареди.
+            <pre class="small mb-0 mt-2">${String(error?.message || error)}</pre>
+          </div>
+        </section>
+      `;
+    }
+    return;
+  }
+
   if (!page) return;
 
   let renderContext = { path: page.path, pageId, page };
@@ -52,14 +80,11 @@ export async function mountPage() {
   if (PROTECTED_PAGES.has(pageId)) {
     const { getSession, getUserProfile } = await import('../services/auth.js');
     const session = await getSession();
-
     if (!session) {
       window.location.replace('/login.html');
       return;
     }
-
     const profile = await getUserProfile(session.user, session.access_token);
-
     renderContext = {
       ...renderContext,
       user: session.user,
@@ -70,24 +95,29 @@ export async function mountPage() {
   }
 
   try {
-    const html = await page.render(renderContext);
-    pageEl.innerHTML = html;
-
-    if (page.init) {
-      // Do not block paint on init — run in background
-      Promise.resolve(page.init(renderContext)).catch((error) => {
-        console.error('page.init', error);
-      });
+    if (htmlFirst) {
+      // Текстовете остават в HTML — JS зарежда динамични блокове на заден план
+      if (page.init) {
+        page.init(renderContext).catch((error) => {
+          console.error('page init', error);
+          showPageError(pageEl, error, true);
+        });
+      }
+    } else {
+      pageEl.innerHTML = `
+        <div class="container py-5 text-center text-secondary">
+          <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+          <span class="ms-2">Зареждане…</span>
+        </div>
+      `;
+      const html = await page.render(renderContext);
+      pageEl.innerHTML = html;
+      if (page.init) {
+        await page.init(renderContext);
+      }
     }
   } catch (error) {
     console.error('mountPage', error);
-    pageEl.innerHTML = `
-      <section class="container py-5">
-        <div class="alert alert-danger" role="alert">
-          Страницата не можа да се зареди.
-          <pre class="small mb-0 mt-2">${String(error?.message || error)}</pre>
-        </div>
-      </section>
-    `;
+    showPageError(pageEl, error, htmlFirst);
   }
 }

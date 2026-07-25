@@ -3,16 +3,114 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="За списание Crescendo — мисия, редакционна колегия, насоки за автори и контакти"
-    />
+    <meta name="description" content="За Crescendo — мисия, редакционна колегия, насоки за автори" />
     <title>За нас · Crescendo</title>
   </head>
   <body data-page="about">
     <div id="app" class="d-flex flex-column min-vh-100">
       <div id="header"></div>
-      <main id="page" class="flex-grow-1"></main>
+
+      <main id="page" class="flex-grow-1" data-static="true">
+        <section class="container py-5">
+          <div class="row">
+            <div class="col-lg-8 mx-auto">
+
+              <h1 class="display-6 mb-4">За Crescendo</h1>
+              <p class="lead text-secondary mb-4">
+                Място за информация и вдъхновение в музикалното образование —
+                практики, политики и истории от сцената и класната стая.
+              </p>
+
+              <blockquote class="inspiration-quote mb-5">
+                <i class="bi bi-quote d-block mb-2" aria-hidden="true"></i>
+                Музиката не е привилегия — тя е език, който всяко дете заслужава
+                да говори. Нашата мисия е да свържем класната стая, сцената и
+                политиката в общ разговор за бъдещето на музикалното образование.
+                <footer class="mt-2">Редакционен екип на Crescendo</footer>
+              </blockquote>
+
+              <section class="mb-5" aria-labelledby="missionHeading">
+                <h2 class="h4 mb-3" id="missionHeading">Мисия и обхват</h2>
+                <p>
+                  Crescendo публикува материали за музикално образование — изследвания,
+                  анализи, практически ръководства и истории от практиката. Целта ни е
+                  да свържем педагози, артисти и образователни лидери.
+                </p>
+                <p class="mb-0">
+                  Обхватът включва ползи от музиката, образователни политики,
+                  педагогически методи, социални програми (вкл. El Sistema) и
+                  академичен резонанс от събития и публикации.
+                </p>
+              </section>
+
+              <section class="mb-5" aria-labelledby="boardHeading">
+                <h2 class="h4 mb-3" id="boardHeading">Редакционна колегия</h2>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <div class="border rounded-3 p-3 h-100 bg-white">
+                      <p class="small text-uppercase text-secondary fw-semibold mb-2">Главен редактор</p>
+                      <p class="fw-semibold mb-1">проф. д-р Мария Иванова</p>
+                      <p class="small text-secondary mb-0">НМА „Проф. Панчо Владигеров“</p>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="border rounded-3 p-3 h-100 bg-white">
+                      <p class="small text-uppercase text-secondary fw-semibold mb-2">Редакционен съвет</p>
+                      <ul class="small mb-0 ps-3">
+                        <li class="mb-2">
+                          <span class="fw-semibold">доц. д-р Елена Георгиева</span><br />
+                          <span class="text-secondary">СУ „Св. Климент Охридски“</span>
+                        </li>
+                        <li>
+                          <span class="fw-semibold">гл. ас. д-р Петър Петров</span><br />
+                          <span class="text-secondary">АМТИИ „Проф. Асен Диамандиев“</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="border rounded-3 p-3 h-100 bg-white">
+                      <p class="small text-uppercase text-secondary fw-semibold mb-2">Рецензенти</p>
+                      <p class="small text-secondary mb-0">
+                        Независими експерти по музикална педагогика, образователни
+                        политики и изпълнителско изкуство.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="mb-5" aria-labelledby="authorsHeading">
+                <h2 class="h4 mb-3" id="authorsHeading">Насоки за автори</h2>
+                <p>
+                  Ръкописите се изпращат чрез авторския панел. Материалите преминават
+                  редакционен преглед и се публикуват след одобрение.
+                </p>
+                <ul class="mb-3">
+                  <li><strong>Формат:</strong> заглавие, резюме, основен текст на български.</li>
+                  <li><strong>Структура:</strong> въведение, аргументация, заключение, източници.</li>
+                  <li><strong>Етика:</strong> оригиналност, коректно цитиране, без паралелно подаване.</li>
+                </ul>
+              </section>
+
+              <section class="mb-0" aria-labelledby="contactsHeading">
+                <h2 class="h4 mb-3" id="contactsHeading">Контакти</h2>
+                <dl class="row mb-0">
+                  <dt class="col-sm-3 text-secondary">Имейл</dt>
+                  <dd class="col-sm-9"><a href="mailto:redakcia@crescendo.bg">redakcia@crescendo.bg</a></dd>
+                  <dt class="col-sm-3 text-secondary">Адрес</dt>
+                  <dd class="col-sm-9 mb-0">
+                    бул. „Евлоги и Христо Георгиеви“ 94<br />
+                    1505 София, България
+                  </dd>
+                </dl>
+              </section>
+
+            </div>
+          </div>
+        </section>
+      </main>
+
       <div id="footer"></div>
     </div>
     <script type="module" src="/src/main.js"></script>

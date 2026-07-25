@@ -6,6 +6,7 @@ export const RUBRICS = [
     page: 'benefits',
     title: 'Ползи',
     icon: 'bi-lightbulb',
+    accent: 'inspiration',
     description:
       'Когнитивни, социални и академични ползи от музикалното образование.',
   },
@@ -15,6 +16,7 @@ export const RUBRICS = [
     page: 'policies',
     title: 'Политики',
     icon: 'bi-bank',
+    accent: 'policy',
     description:
       'Политики, управление и реформи в музикалното образование.',
   },
@@ -23,7 +25,8 @@ export const RUBRICS = [
     path: '/practices.html',
     page: 'practices',
     title: 'Практики',
-    icon: 'bi-journal-richtext',
+    icon: 'bi-music-note-beamed',
+    accent: 'practice',
     description:
       'Педагогически методи, подходи и практически ръководства.',
   },
@@ -33,6 +36,7 @@ export const RUBRICS = [
     page: 'el-sistema',
     title: 'Ел Система',
     icon: 'bi-people',
+    accent: 'practice',
     description:
       'Социални музикални програми и методологии на El Sistema.',
   },
@@ -42,6 +46,7 @@ export const RUBRICS = [
     page: 'resonance',
     title: 'Резонанс',
     icon: 'bi-broadcast',
+    accent: 'event',
     description:
       'Анонси, отзиви и редакционни материали от академичния музикален живот.',
   },
@@ -53,4 +58,13 @@ export function getRubricByPage(page) {
 
 export function getRubricByPath(path) {
   return RUBRICS.find((r) => r.path === path) ?? null;
+}
+
+export function getRubricBySlug(slug) {
+  return RUBRICS.find((r) => r.slug === slug) ?? null;
+}
+
+/** @returns {'practice' | 'policy' | 'inspiration' | 'event'} */
+export function getRubricAccent(slug) {
+  return getRubricBySlug(slug)?.accent ?? 'practice';
 }

@@ -28,7 +28,7 @@ export function renderTagBadges(tagsRaw, options = {}) {
       return `
       <a
         href="${tagFilterHref(tag.slug)}"
-        class="badge rounded-pill text-bg-secondary text-decoration-none"
+        class="badge-tag"
         title="Филтрирай по „${escapeHtml(label)}“"
       >#${escapeHtml(label)}</a>
     `;

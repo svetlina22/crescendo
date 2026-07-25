@@ -1,5 +1,6 @@
 import { fetchPublishedArticleBySlug, normalizeTags } from '../services/articles.js';
-import { RUBRICS } from '../data/rubrics.js';
+import { RUBRICS, getRubricAccent } from '../data/rubrics.js';
+import { getArticleImage } from '../data/visuals.js';
 import { renderTagBadges } from '../components/TagBadges.js';
 
 function escapeHtml(value) {
@@ -110,7 +111,7 @@ export async function renderArticlePage(_ctx = {}) {
 
           ${
             rubric?.title
-              ? `<a href="${backHref}" class="badge text-bg-light text-decoration-none mb-3">${escapeHtml(rubric.title)}</a>`
+              ? `<a href="${backHref}" class="badge-cat badge-cat--${getRubricAccent(rubric.slug)} mb-3">${escapeHtml(rubric.title)}</a>`
               : ''
           }
 
@@ -143,8 +144,8 @@ export async function renderArticlePage(_ctx = {}) {
           }
 
           ${
-            article.cover_image_url
-              ? `<img src="${escapeHtml(article.cover_image_url)}" alt="" class="img-fluid rounded mb-4 w-100" style="max-height: 28rem; object-fit: cover" />`
+            article.cover_image_url || getArticleImage(article)
+              ? `<img src="${escapeHtml(getArticleImage(article))}" alt="" class="img-fluid rounded mb-4 w-100 article-hero-img" />`
               : ''
           }
 
