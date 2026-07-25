@@ -55,7 +55,7 @@ function eventHref(event) {
 }
 
 function eventImage(event, index) {
-  if (event.cover_image_url) return escapeHtml(event.cover_image_url);
+  if (event.image_url) return escapeHtml(event.image_url);
   return EVENT_IMAGES[index % EVENT_IMAGES.length];
 }
 
@@ -92,7 +92,7 @@ export function renderEventsSidebar(events = []) {
                     />
                   </div>
                   <span class="badge text-bg-crescendo-soft mb-2">
-                    ${escapeHtml(formatDateBadge(event.start_date))}
+                    ${escapeHtml(formatDateBadge(event.date))}
                   </span>
                   <h3 class="h6 mb-1 event-card__title">
                     ${escapeHtml(event.title)}

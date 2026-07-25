@@ -388,6 +388,10 @@ export async function renderDashboardPage(ctx = {}) {
             <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
             Нова статия
           </button>
+          <a href="/add-event.html" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-calendar-plus me-1" aria-hidden="true"></i>
+            Ново събитие
+          </a>
           <button type="button" class="btn btn-outline-secondary btn-sm" id="logoutBtn">
             <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>
             Изход

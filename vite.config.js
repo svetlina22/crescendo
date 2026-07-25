@@ -28,6 +28,7 @@ export default defineConfig({
         events: resolve(__dirname, 'events.html'),
         login: resolve(__dirname, 'login.html'),
         dashboard: resolve(__dirname, 'dashboard.html'),
+        addEvent: resolve(__dirname, 'add-event.html'),
         article: resolve(__dirname, 'article.html'),
         about: resolve(__dirname, 'about.html'),
       },

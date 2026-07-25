@@ -7,6 +7,7 @@ import { renderResonancePage } from '../pages/resonance.js';
 import { renderEventsPage } from '../pages/events.js';
 import { renderLoginPage, initLoginPage } from '../pages/login.js';
 import { renderDashboardPage, initDashboardPage } from '../pages/dashboard.js';
+import { renderAddEventPage, initAddEventPage } from '../pages/addEvent.js';
 import { renderArticlePage } from '../pages/article.js';
 import { renderAboutPage } from '../pages/about.js';
 
@@ -47,6 +48,12 @@ export const pages = {
     path: '/dashboard.html',
     render: renderDashboardPage,
     init: initDashboardPage,
+  },
+  'add-event': {
+    title: 'Добавяне на събитие',
+    path: '/add-event.html',
+    render: renderAddEventPage,
+    init: initAddEventPage,
   },
 };
 

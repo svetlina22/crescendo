@@ -6,7 +6,7 @@ import { getPage } from './pages.js';
 import { renderHeader } from '../components/Header.js';
 import { renderFooter } from '../components/Footer.js';
 
-const PROTECTED_PAGES = new Set(['dashboard']);
+const PROTECTED_PAGES = new Set(['dashboard', 'add-event']);
 
 export async function mountPage() {
   const headerEl = document.querySelector('#header');
