@@ -1,4 +1,4 @@
-import { renderHomePage } from '../pages/home.js';
+import { renderHomePage, initHomePage } from '../pages/home.js';
 import { renderBenefitsPage } from '../pages/benefits.js';
 import { renderPoliciesPage } from '../pages/policies.js';
 import { renderPracticesPage } from '../pages/practices.js';
@@ -7,10 +7,11 @@ import { renderResonancePage } from '../pages/resonance.js';
 import { renderEventsPage } from '../pages/events.js';
 import { renderLoginPage, initLoginPage } from '../pages/login.js';
 import { renderDashboardPage, initDashboardPage } from '../pages/dashboard.js';
+import { renderArticlePage } from '../pages/article.js';
 
 /** MPA page registry — keyed by body[data-page] */
 export const pages = {
-  home: { title: 'Начало', path: '/index.html', render: renderHomePage },
+  home: { title: 'Начало', path: '/index.html', render: renderHomePage, init: initHomePage },
   benefits: { title: 'Ползи', path: '/benefits.html', render: renderBenefitsPage },
   policies: { title: 'Политики', path: '/policies.html', render: renderPoliciesPage },
   practices: { title: 'Практики', path: '/practices.html', render: renderPracticesPage },
@@ -28,6 +29,11 @@ export const pages = {
     title: 'Събития',
     path: '/events.html',
     render: renderEventsPage,
+  },
+  article: {
+    title: 'Статия',
+    path: '/article.html',
+    render: renderArticlePage,
   },
   login: { title: 'Вход', path: '/login.html', render: renderLoginPage, init: initLoginPage },
   dashboard: {

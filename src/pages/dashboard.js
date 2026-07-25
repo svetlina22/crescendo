@@ -3,8 +3,11 @@ import {
   deleteArticle,
   fetchPanelArticles,
   fetchRubrics,
+  normalizeTags,
+  resolveOrCreateTagIds,
   setArticleStatus,
-  slugifyTitle,
+  setArticleTags,
+  slugifyTag,
   updateArticle,
 } from '../services/articles.js';
 
@@ -67,6 +70,32 @@ function rubricOptionsHtml(rubrics = [], selectedId = '') {
     )
     .join('');
   return `<option value="">Изберете рубрика…</option>${items}`;
+}
+
+/**
+ * @param {{ name: string, slug: string }[]} draftTags
+ */
+function draftTagsPillsHtml(draftTags = []) {
+  if (draftTags.length === 0) {
+    return `<span class="small text-secondary">Все още няма добавени тагове.</span>`;
+  }
+
+  return draftTags
+    .map(
+      (tag, index) => `
+      <span class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">
+        #${escapeHtml(tag.slug)}
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          style="font-size: 0.55rem"
+          data-remove-tag="${index}"
+          aria-label="Премахни ${escapeHtml(tag.slug)}"
+        ></button>
+      </span>
+    `,
+    )
+    .join('');
 }
 
 function renderStats(articles, isAdmin) {
@@ -248,12 +277,56 @@ function modalHtml(isAdmin, rubrics = []) {
               </select>
             </div>
             <div class="mb-3">
+              <label for="articleSlug" class="form-label">Slug <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text font-monospace small" id="articleSlugPrefix">/crescendo/…/</span>
+                <input
+                  type="text"
+                  class="form-control font-monospace"
+                  id="articleSlug"
+                  name="slug"
+                  placeholder="name-of-article"
+                  maxlength="80"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+              </div>
+              <div class="form-text mb-0">
+                Ръчен URL след рубриката. Пълен адрес:
+                <code id="articleSlugPreview">/crescendo/…/</code>
+              </div>
+            </div>
+            <div class="mb-3">
               <label for="articleSummary" class="form-label">Резюме / Abstract</label>
               <textarea class="form-control" id="articleSummary" name="summary" rows="3"></textarea>
             </div>
             <div class="mb-3">
               <label for="articleContent" class="form-label">Основен текст <span class="text-danger">*</span></label>
               <textarea class="form-control" id="articleContent" name="content" rows="8"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="newTagSlug" class="form-label">Tags</label>
+              <div id="draftTagsWrap" class="d-flex flex-wrap gap-2 mb-2">
+                ${draftTagsPillsHtml([])}
+              </div>
+              <div class="input-group">
+                <span class="input-group-text">#</span>
+                <input
+                  type="text"
+                  class="form-control font-monospace"
+                  id="newTagSlug"
+                  placeholder="напр. solfezh"
+                  maxlength="80"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <button type="button" class="btn btn-outline-secondary" id="addTagBtn">
+                  Добави
+                </button>
+              </div>
+              <div class="form-text">
+                Ръчно добавяне на tag slug. Enter или Добави.
+              </div>
             </div>
             <div class="mb-0">
               <label for="articleStatus" class="form-label">Статус</label>
@@ -349,6 +422,8 @@ export async function initDashboardPage(ctx = {}) {
 
   let articles = await fetchPanelArticles({ userId, accessToken, isAdmin });
   let rubrics = await fetchRubrics(accessToken);
+  /** @type {{ name: string, slug: string }[]} */
+  let draftTags = [];
 
   const modalEl = document.getElementById('articleModal');
   const form = document.getElementById('articleForm');
@@ -364,14 +439,21 @@ export async function initDashboardPage(ctx = {}) {
   const summaryInput = document.getElementById('articleSummary');
   const contentInput = document.getElementById('articleContent');
   const rubricSelect = document.getElementById('articleRubric');
+  const slugInput = document.getElementById('articleSlug');
+  const slugPrefixEl = document.getElementById('articleSlugPrefix');
+  const slugPreviewEl = document.getElementById('articleSlugPreview');
   const statusSelect = document.getElementById('articleStatus');
   const idInput = document.getElementById('articleId');
   const modalLabel = document.getElementById('articleModalLabel');
+  const draftTagsWrap = document.getElementById('draftTagsWrap');
+  const newTagSlugInput = document.getElementById('newTagSlug');
+  const addTagBtn = document.getElementById('addTagBtn');
 
   if (!modalEl || !form || !articlesWrap || !idInput) return;
 
   const modal = Modal.getOrCreateInstance(modalEl);
   const toast = toastEl ? Toast.getOrCreateInstance(toastEl, { delay: 3500 }) : null;
+  let articleSlugTouched = false;
 
   function showToast(message, variant = 'success') {
     if (!toastEl || !toastBody || !toast) return;
@@ -408,6 +490,59 @@ export async function initDashboardPage(ctx = {}) {
     formAlert?.classList.add('d-none');
   }
 
+  function selectedRubricSlug() {
+    const id = rubricSelect?.value ?? '';
+    const rubric = rubrics.find((r) => r.id === id);
+    return rubric?.slug || '…';
+  }
+
+  function updateSlugPathPreview() {
+    const rubricSlug = selectedRubricSlug();
+    const prefix = `/crescendo/${rubricSlug}/`;
+    const articleSlug = slugifyTag(slugInput?.value || '') || '';
+    if (slugPrefixEl) slugPrefixEl.textContent = prefix;
+    if (slugPreviewEl) {
+      slugPreviewEl.textContent = articleSlug ? `${prefix}${articleSlug}` : prefix;
+    }
+  }
+
+  function clearTagInputs() {
+    if (newTagSlugInput) newTagSlugInput.value = '';
+  }
+
+  function renderDraftTags() {
+    if (!draftTagsWrap) return;
+    draftTagsWrap.innerHTML = draftTagsPillsHtml(draftTags);
+  }
+
+  /**
+   * @param {{ quiet?: boolean }} [opts]
+   * @returns {boolean}
+   */
+  function addDraftTagFromFields(opts = {}) {
+    const slug = slugifyTag((newTagSlugInput?.value || '').trim().replace(/^#/, ''));
+
+    if (!slug) {
+      if (!opts.quiet) {
+        showFormError('Въведете slug на таг.');
+        newTagSlugInput?.focus();
+      }
+      return false;
+    }
+
+    const exists = draftTags.some((t) => t.slug === slug);
+    if (exists) {
+      if (!opts.quiet) showFormError('Този slug вече е добавен.');
+      return false;
+    }
+
+    draftTags.push({ name: slug, slug });
+    clearTagInputs();
+    clearFormError();
+    renderDraftTags();
+    return true;
+  }
+
   async function ensureRubrics() {
     if (rubrics.length === 0) {
       rubrics = await fetchRubrics(accessToken);
@@ -418,9 +553,15 @@ export async function initDashboardPage(ctx = {}) {
   function openCreateModal() {
     form.reset();
     idInput.value = '';
+    draftTags = [];
+    articleSlugTouched = false;
+    renderDraftTags();
+    clearTagInputs();
+    if (slugInput) slugInput.value = '';
     if (modalLabel) modalLabel.textContent = 'Нова статия';
     ensureRubrics().then((list) => {
       if (rubricSelect) rubricSelect.innerHTML = rubricOptionsHtml(list);
+      updateSlugPathPreview();
       if (list.length === 0) {
         showFormError('Няма налични рубрики. Опитайте отново след презареждане.');
       } else {
@@ -435,10 +576,12 @@ export async function initDashboardPage(ctx = {}) {
   function openEditModal(article) {
     form.reset();
     idInput.value = article.id;
+    articleSlugTouched = true;
     if (modalLabel) modalLabel.textContent = 'Редакция на статия';
     if (titleInput) titleInput.value = article.title ?? '';
     if (summaryInput) summaryInput.value = article.summary ?? '';
     if (contentInput) contentInput.value = article.content ?? '';
+    if (slugInput) slugInput.value = article.slug ?? '';
     ensureRubrics().then((list) => {
       if (rubricSelect) {
         rubricSelect.innerHTML = rubricOptionsHtml(
@@ -446,7 +589,15 @@ export async function initDashboardPage(ctx = {}) {
           article.rubric_id || article.rubrics?.id || '',
         );
       }
+      updateSlugPathPreview();
     });
+
+    draftTags = normalizeTags(article.tags).map((t) => ({
+      name: t.name || t.slug,
+      slug: t.slug,
+    }));
+    renderDraftTags();
+    clearTagInputs();
 
     const selectedStatus =
       !isAdmin && article.status === 'published' ? 'pending' : article.status || 'draft';
@@ -469,7 +620,13 @@ export async function initDashboardPage(ctx = {}) {
     const summary = summaryInput?.value.trim() ?? '';
     const content = contentInput?.value.trim() ?? '';
     const rubricId = rubricSelect?.value ?? '';
+    const articleSlug = slugifyTag(slugInput?.value ?? '');
     let status = statusSelect?.value ?? 'draft';
+
+    // Flush pending tag field before save
+    if ((newTagSlugInput?.value || '').trim()) {
+      addDraftTagFromFields({ quiet: true });
+    }
 
     if (!title) {
       showFormError('Въведете заглавие.');
@@ -479,6 +636,11 @@ export async function initDashboardPage(ctx = {}) {
     if (!rubricId) {
       showFormError('Изберете рубрика.');
       rubricSelect?.focus();
+      return;
+    }
+    if (!articleSlug) {
+      showFormError('Въведете slug за URL след рубриката.');
+      slugInput?.focus();
       return;
     }
     if (!content) {
@@ -494,6 +656,7 @@ export async function initDashboardPage(ctx = {}) {
     /** @type {Record<string, unknown>} */
     const payload = {
       title,
+      slug: articleSlug,
       summary: summary || null,
       content,
       rubric_id: rubricId,
@@ -512,6 +675,8 @@ export async function initDashboardPage(ctx = {}) {
     }
 
     try {
+      let articleId = id;
+
       if (id) {
         if (!isAdmin) {
           const existing = articles.find((a) => a.id === id);
@@ -526,13 +691,19 @@ export async function initDashboardPage(ctx = {}) {
         showToast('Статията е обновена.');
       } else {
         payload.author_id = userId;
-        payload.slug = slugifyTitle(title);
         if (!isAdmin) {
           payload.status = status === 'published' ? 'pending' : status;
         }
-        await createArticle(accessToken, payload);
+        const created = await createArticle(accessToken, payload);
+        articleId = created?.id;
+        if (!articleId) {
+          throw new Error('Статията е създадена, но липсва id за таговете.');
+        }
         showToast('Статията е създадена.');
       }
+
+      const tagIds = await resolveOrCreateTagIds(accessToken, draftTags);
+      await setArticleTags(accessToken, articleId, tagIds);
 
       modal.hide();
       await reloadArticles();
@@ -561,6 +732,55 @@ export async function initDashboardPage(ctx = {}) {
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     saveArticle();
+  });
+
+  rubricSelect?.addEventListener('change', () => {
+    updateSlugPathPreview();
+  });
+
+  slugInput?.addEventListener('input', () => {
+    articleSlugTouched = true;
+    updateSlugPathPreview();
+  });
+
+  slugInput?.addEventListener('blur', () => {
+    if (!slugInput) return;
+    const cleaned = slugifyTag(slugInput.value);
+    if (slugInput.value.trim()) {
+      slugInput.value = cleaned;
+      updateSlugPathPreview();
+    }
+  });
+
+  titleInput?.addEventListener('input', () => {
+    if (articleSlugTouched || !slugInput || idInput.value) return;
+    slugInput.value = slugifyTag(titleInput.value);
+    updateSlugPathPreview();
+  });
+
+  draftTagsWrap?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-remove-tag]');
+    if (!btn) return;
+    const index = Number(btn.dataset.removeTag);
+    if (Number.isNaN(index)) return;
+    draftTags = draftTags.filter((_, i) => i !== index);
+    renderDraftTags();
+  });
+
+  addTagBtn?.addEventListener('click', () => {
+    addDraftTagFromFields();
+  });
+
+  newTagSlugInput?.addEventListener('blur', () => {
+    if (!newTagSlugInput?.value.trim()) return;
+    newTagSlugInput.value = slugifyTag(newTagSlugInput.value);
+  });
+
+  newTagSlugInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      addDraftTagFromFields();
+    }
   });
 
   articlesWrap.addEventListener('click', async (event) => {

@@ -1,4 +1,6 @@
 import { RUBRICS } from '../data/rubrics.js';
+import { renderTagBadges } from './TagBadges.js';
+import { normalizeTags } from '../services/articles.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -11,6 +13,18 @@ function escapeHtml(value) {
 function rubricPath(slug) {
   const match = RUBRICS.find((r) => r.slug === slug);
   return match?.path ?? '/index.html';
+}
+
+/**
+ * Public article URL. Path shape mirrors /crescendo/{rubric}/{slug}.
+ * @param {string} slug
+ * @param {string} [rubricSlug]
+ */
+export function articleHref(slug, rubricSlug = '') {
+  if (!slug) return '/index.html';
+  const params = new URLSearchParams({ slug });
+  if (rubricSlug) params.set('rubric', rubricSlug);
+  return `/article.html?${params}`;
 }
 
 function formatPublishedAt(isoDate) {
@@ -26,16 +40,21 @@ function formatPublishedAt(isoDate) {
 
 /**
  * @param {Array} articles
+ * @param {{ heading?: string, showRubricBadge?: boolean, emptyMessage?: string }} [options]
  */
-export function renderArticlesFeed(articles = []) {
+export function renderArticlesFeed(articles = [], options = {}) {
+  const {
+    heading = 'Последни статии',
+    showRubricBadge = true,
+    emptyMessage = 'Все още няма публикувани материали в тази секция.',
+  } = options;
+
   if (articles.length === 0) {
     return `
       <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-          <h2 class="h5 mb-2">Последни статии</h2>
-          <p class="text-secondary mb-0">
-            Все още няма публикувани материали. След seed в Supabase тук ще се появят статиите.
-          </p>
+          <h2 class="h5 mb-2">${escapeHtml(heading)}</h2>
+          <p class="text-secondary mb-0">${escapeHtml(emptyMessage)}</p>
         </div>
       </div>
     `;
@@ -48,14 +67,18 @@ export function renderArticlesFeed(articles = []) {
       const authorLabel = [author?.academic_title, author?.full_name]
         .filter(Boolean)
         .join(' ');
-      const href = rubricPath(rubric?.slug);
+      const href = articleHref(article.slug, rubric?.slug);
+      const rubricHref = rubricPath(rubric?.slug);
+      const tagsHtml = renderTagBadges(normalizeTags(article.tags), {
+        className: 'd-flex flex-wrap gap-2 mt-3',
+      });
 
       return `
         <article class="card border-0 shadow-sm mb-3">
           <div class="card-body p-4">
             ${
-              rubric?.title
-                ? `<a href="${href}" class="badge text-bg-light text-decoration-none mb-2">${escapeHtml(rubric.title)}</a>`
+              showRubricBadge && rubric?.title
+                ? `<a href="${rubricHref}" class="badge text-bg-light text-decoration-none mb-2">${escapeHtml(rubric.title)}</a>`
                 : ''
             }
             <h3 class="h5 mb-2">
@@ -81,6 +104,7 @@ export function renderArticlesFeed(articles = []) {
                   : ''
               }
             </div>
+            ${tagsHtml}
           </div>
         </article>
       `;
@@ -89,7 +113,7 @@ export function renderArticlesFeed(articles = []) {
 
   return `
     <div class="d-flex justify-content-between align-items-end mb-3">
-      <h2 class="h4 mb-0">Последни статии</h2>
+      <h2 class="h4 mb-0">${escapeHtml(heading)}</h2>
     </div>
     ${items}
   `;

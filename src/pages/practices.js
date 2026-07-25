@@ -8,6 +8,7 @@ export async function renderPracticesPage() {
     title: rubric.title,
     icon: rubric.icon,
     description: rubric.description,
+    slug: rubric.slug,
     emptyMessage:
       'Тук ще се показват педагогически методи и практически ръководства.',
   });

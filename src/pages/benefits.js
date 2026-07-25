@@ -8,6 +8,7 @@ export async function renderBenefitsPage() {
     title: rubric.title,
     icon: rubric.icon,
     description: rubric.description,
+    slug: rubric.slug,
     emptyMessage:
       'Тук ще се показват статии за когнитивните и социалните ползи от музикалното образование.',
   });

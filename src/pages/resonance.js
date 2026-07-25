@@ -8,6 +8,7 @@ export async function renderResonancePage() {
     title: rubric.title,
     icon: rubric.icon,
     description: rubric.description,
+    slug: rubric.slug,
     emptyMessage:
       'Тук ще се показват анонси, отзиви и редакционни материали от рубриката „Резонанс“.',
   });

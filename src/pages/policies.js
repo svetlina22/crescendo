@@ -8,6 +8,7 @@ export async function renderPoliciesPage() {
     title: rubric.title,
     icon: rubric.icon,
     description: rubric.description,
+    slug: rubric.slug,
     emptyMessage:
       'Тук ще се показват документи за политики, управление и образователни реформи.',
   });
