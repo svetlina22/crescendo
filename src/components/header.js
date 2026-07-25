@@ -49,20 +49,6 @@ export function renderHeader(activePath = '/index.html') {
               </li>
               ${rubricLinks}
             </ul>
-            <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0">
-              <a
-                class="btn btn-outline-secondary btn-sm px-3${isActive('/login.html') ? ' active' : ''}"
-                href="/login.html"
-              >
-                Вход
-              </a>
-              <a
-                class="btn btn-crescendo btn-sm px-3${isActive('/dashboard.html') ? ' active' : ''}"
-                href="/dashboard.html"
-              >
-                Табло
-              </a>
-            </div>
           </div>
         </div>
       </nav>

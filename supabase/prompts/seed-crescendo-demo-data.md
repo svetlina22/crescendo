@@ -13,6 +13,6 @@ Use [`../migrations/20260725123000_seed_crescendo_demo_data.sql`](../migrations/
 
 | Email | Password | Role |
 |-------|----------|------|
-| `admin@crescendo.bg` | `CrescendoDemo1!` | admin |
-| `author1@crescendo.bg` | `CrescendoDemo1!` | author |
-| `author2@crescendo.bg` | `CrescendoDemo1!` | author |
+| `admin@crescendo.bg` | `123123` | admin |
+| `author1@crescendo.bg` | `123123` | author |
+| `author2@crescendo.bg` | `123123` | author |

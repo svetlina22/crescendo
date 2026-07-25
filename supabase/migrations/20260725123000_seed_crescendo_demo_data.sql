@@ -3,9 +3,9 @@
 -- Profiles are created via auth.users insert → handle_new_user trigger, then enriched.
 --
 -- Demo login (after seed):
---   admin@crescendo.bg  / CrescendoDemo1!
---   author1@crescendo.bg / CrescendoDemo1!
---   author2@crescendo.bg / CrescendoDemo1!
+--   admin@crescendo.bg  / 123123
+--   author1@crescendo.bg / 123123
+--   author2@crescendo.bg / 123123
 --
 -- First admin is set by email below.
 
@@ -42,7 +42,7 @@ with created_users as (
         'authenticated',
         'authenticated',
         'admin@crescendo.bg',
-        crypt('CrescendoDemo1!', gen_salt('bf')),
+        crypt('123123', gen_salt('bf')),
         now(),
         '{"provider":"email","providers":["email"]}'::jsonb,
         '{"full_name":"проф. д-р Мария Иванова"}'::jsonb,
@@ -59,7 +59,7 @@ with created_users as (
         'authenticated',
         'authenticated',
         'author1@crescendo.bg',
-        crypt('CrescendoDemo1!', gen_salt('bf')),
+        crypt('123123', gen_salt('bf')),
         now(),
         '{"provider":"email","providers":["email"]}'::jsonb,
         '{"full_name":"гл. ас. д-р Петър Петров"}'::jsonb,
@@ -76,7 +76,7 @@ with created_users as (
         'authenticated',
         'authenticated',
         'author2@crescendo.bg',
-        crypt('CrescendoDemo1!', gen_salt('bf')),
+        crypt('123123', gen_salt('bf')),
         now(),
         '{"provider":"email","providers":["email"]}'::jsonb,
         '{"full_name":"доц. д-р Елена Георгиева"}'::jsonb,

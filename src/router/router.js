@@ -6,6 +6,8 @@ import { getPage } from './pages.js';
 import { renderHeader } from '../components/Header.js';
 import { renderFooter } from '../components/Footer.js';
 
+const PROTECTED_PAGES = new Set(['dashboard']);
+
 export async function mountPage() {
   const headerEl = document.querySelector('#header');
   const pageEl = document.querySelector('#page');
@@ -42,9 +44,34 @@ export async function mountPage() {
     </div>
   `;
 
+  let renderContext = { path: page.path, pageId, page };
+
+  if (PROTECTED_PAGES.has(pageId)) {
+    const { getSession } = await import('../services/auth.js');
+    const session = await getSession();
+
+    if (!session) {
+      window.location.replace('/login.html');
+      return;
+    }
+
+    renderContext = {
+      ...renderContext,
+      user: session.user,
+      accessToken: session.access_token,
+    };
+  }
+
   try {
-    const html = await page.render({ path: page.path, pageId, page });
+    const html = await page.render(renderContext);
     pageEl.innerHTML = html;
+
+    if (pageId === 'login' && page.init) {
+      await page.init();
+    }
+    if (pageId === 'dashboard' && page.init) {
+      await page.init();
+    }
   } catch (error) {
     console.error('mountPage', error);
     pageEl.innerHTML = `

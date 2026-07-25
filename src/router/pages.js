@@ -5,8 +5,8 @@ import { renderPracticesPage } from '../pages/practices.js';
 import { renderElSistemaPage } from '../pages/elSistema.js';
 import { renderResonancePage } from '../pages/resonance.js';
 import { renderEventsPage } from '../pages/events.js';
-import { renderLoginPage } from '../pages/login.js';
-import { renderDashboardPage } from '../pages/dashboard.js';
+import { renderLoginPage, initLoginPage } from '../pages/login.js';
+import { renderDashboardPage, initDashboardPage } from '../pages/dashboard.js';
 
 /** MPA page registry — keyed by body[data-page] */
 export const pages = {
@@ -29,8 +29,13 @@ export const pages = {
     path: '/events.html',
     render: renderEventsPage,
   },
-  login: { title: 'Вход', path: '/login.html', render: renderLoginPage },
-  dashboard: { title: 'Табло', path: '/dashboard.html', render: renderDashboardPage },
+  login: { title: 'Вход', path: '/login.html', render: renderLoginPage, init: initLoginPage },
+  dashboard: {
+    title: 'Моите статии',
+    path: '/dashboard.html',
+    render: renderDashboardPage,
+    init: initDashboardPage,
+  },
 };
 
 export function getPage(pageId) {

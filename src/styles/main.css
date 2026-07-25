@@ -57,6 +57,15 @@ body {
   color: #fff;
 }
 
+.footer-login-link {
+  color: rgba(255, 255, 255, 0.45) !important;
+  text-decoration: none;
+}
+
+.footer-login-link:hover {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
 .nav-link.active {
   font-weight: 600;
   color: var(--crescendo-accent) !important;
