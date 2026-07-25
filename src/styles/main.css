@@ -91,6 +91,37 @@ body {
   color: var(--crescendo-accent);
 }
 
+.home-sidebar-sticky {
+  position: sticky;
+  top: 1.25rem;
+}
+
+.badge.text-bg-crescendo-soft {
+  background-color: var(--crescendo-accent-soft);
+  color: var(--crescendo-accent);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.event-card__media {
+  background: var(--crescendo-accent-soft);
+}
+
+.event-card__img {
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+.event-card__title {
+  color: var(--crescendo-ink);
+  line-height: 1.35;
+}
+
+.event-card a:hover .event-card__title {
+  color: var(--crescendo-accent);
+}
+
 .events-sidebar-sticky {
   position: sticky;
   top: 1.25rem;

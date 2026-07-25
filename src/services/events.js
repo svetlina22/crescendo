@@ -1,11 +1,11 @@
 import { isSupabaseConfigured, supabaseRest } from '../config/supabase.js';
 
 /**
- * Upcoming events: start_date >= now, ascending, max 4.
- * @param {number} [limit=4]
+ * Upcoming events: start_date >= now, ascending.
+ * @param {number} [limit=3]
  * @returns {Promise<Array>}
  */
-export async function fetchUpcomingEvents(limit = 4) {
+export async function fetchUpcomingEvents(limit = 3) {
   if (!isSupabaseConfigured()) return [];
 
   try {

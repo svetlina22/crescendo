@@ -1,13 +1,17 @@
 import { RUBRICS } from '../data/rubrics.js';
 import {
+  fetchPopularTags,
   fetchPublicTags,
   resolveTag,
   searchPublishedArticles,
-  tagFilterHref,
 } from '../services/articles.js';
 import { fetchUpcomingEvents } from '../services/events.js';
 import { renderArticlesFeed } from '../components/ArticlesFeed.js';
 import { renderEventsSidebar } from '../components/EventsSidebar.js';
+import {
+  renderSearchWidget,
+  renderTagCloudWidget,
+} from '../components/HomeSidebar.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -65,45 +69,6 @@ function renderActiveFilter({ tag, q, tagLabel }) {
   `;
 }
 
-function renderSearchForm({ q = '', tags = [] }) {
-  const suggestions = tags
-    .slice(0, 8)
-    .map(
-      (t) => `
-      <a href="${tagFilterHref(t.slug)}" class="badge rounded-pill text-bg-light text-decoration-none border">
-        #${escapeHtml(t.name)}
-      </a>
-    `,
-    )
-    .join('');
-
-  return `
-    <form id="articleSearchForm" class="mb-3" role="search">
-      <label for="articleSearchInput" class="form-label visually-hidden">Търсене</label>
-      <div class="input-group">
-        <span class="input-group-text bg-white">
-          <i class="bi bi-search" aria-hidden="true"></i>
-        </span>
-        <input
-          type="search"
-          class="form-control"
-          id="articleSearchInput"
-          name="q"
-          value="${escapeHtml(q)}"
-          placeholder="Търсене по заглавие или таг…"
-          autocomplete="off"
-        />
-        <button type="submit" class="btn btn-crescendo">Търси</button>
-      </div>
-      ${
-        suggestions
-          ? `<div class="d-flex flex-wrap gap-2 mt-2" aria-label="Популярни тагове">${suggestions}</div>`
-          : ''
-      }
-    </form>
-  `;
-}
-
 function feedHeading({ tag, q, tagLabel }) {
   if (tag) return `Статии с таг #${tagLabel || tag}`;
   if (q) return `Резултати за „${q}“`;
@@ -118,20 +83,20 @@ export async function renderHomePage(_ctx = {}) {
 
   let articles = [];
   let events = [];
-  let tags = [];
+  let popularTags = [];
 
   try {
-    [articles, events, tags] = await Promise.all([
+    [articles, events, popularTags] = await Promise.all([
       searchPublishedArticles({ limit: tag || q ? 40 : 8, tag, q }),
-      fetchUpcomingEvents(4),
-      fetchPublicTags(),
+      fetchUpcomingEvents(3),
+      fetchPopularTags(12),
     ]);
   } catch (error) {
     console.error('renderHomePage fetch failed', error);
   }
 
-  const matchedTag = resolveTag(tag, tags);
-  const tagLabel = matchedTag?.name || tag;
+  const matchedTag = resolveTag(tag, popularTags);
+  const tagLabel = matchedTag?.slug || matchedTag?.name || tag;
 
   const rubricStrip = RUBRICS.map(
     (rubric) => `
@@ -168,7 +133,6 @@ export async function renderHomePage(_ctx = {}) {
     <section class="container py-5">
       <div class="row g-4 align-items-start">
         <div class="col-lg-8">
-          ${renderSearchForm({ q, tags })}
           <div id="activeFilterWrap">
             ${renderActiveFilter({ tag, q, tagLabel })}
           </div>
@@ -180,8 +144,12 @@ export async function renderHomePage(_ctx = {}) {
           </div>
         </div>
         <div class="col-lg-4">
-          <div class="events-sidebar-sticky">
+          <div class="home-sidebar-sticky">
+            ${renderSearchWidget(q)}
             ${renderEventsSidebar(events)}
+            <div id="tagCloudWrap">
+              ${renderTagCloudWidget(popularTags, tag)}
+            </div>
           </div>
         </div>
       </div>
@@ -194,16 +162,18 @@ export async function initHomePage() {
   const input = document.getElementById('articleSearchInput');
   const feedEl = document.getElementById('articlesFeed');
   const filterWrap = document.getElementById('activeFilterWrap');
+  const tagCloudWrap = document.getElementById('tagCloudWrap');
 
-  if (!form || !feedEl) return;
+  if (!feedEl) return;
 
   let tags = await fetchPublicTags();
+  let popularTags = await fetchPopularTags(12);
   let debounceTimer = 0;
 
   async function applyFilters({ tag = '', q = '', pushUrl = true } = {}) {
-    const matchedTag = resolveTag(tag, tags);
+    const matchedTag = resolveTag(tag, tags.length ? tags : popularTags);
     const tagSlug = matchedTag?.slug || tag;
-    const tagLabel = matchedTag?.name || tagSlug;
+    const tagLabel = matchedTag?.slug || matchedTag?.name || tagSlug;
 
     if (pushUrl) {
       writeFiltersToUrl({ tag: tagSlug, q });
@@ -212,6 +182,14 @@ export async function initHomePage() {
     if (filterWrap) {
       filterWrap.innerHTML = renderActiveFilter({ tag: tagSlug, q, tagLabel });
       bindClearButton();
+    }
+
+    if (tagCloudWrap) {
+      tagCloudWrap.innerHTML = renderTagCloudWidget(popularTags, tagSlug);
+    }
+
+    if (input && input.value !== q) {
+      input.value = q;
     }
 
     feedEl.innerHTML = `
@@ -242,21 +220,14 @@ export async function initHomePage() {
 
   bindClearButton();
 
-  form.addEventListener('submit', async (event) => {
+  form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const raw = (input?.value || '').trim();
     if (!raw) {
-      await applyFilters({ tag: '', q: '' });
+      const { tag } = readFiltersFromUrl();
+      await applyFilters({ tag, q: '' });
       return;
     }
-
-    const asTag = resolveTag(raw, tags);
-    if (asTag) {
-      if (input) input.value = '';
-      await applyFilters({ tag: asTag.slug, q: '' });
-      return;
-    }
-
     const { tag } = readFiltersFromUrl();
     await applyFilters({ tag, q: raw });
   });
@@ -266,19 +237,18 @@ export async function initHomePage() {
     debounceTimer = window.setTimeout(async () => {
       const raw = (input.value || '').trim();
       const { tag } = readFiltersFromUrl();
-
-      if (!raw) {
-        await applyFilters({ tag, q: '', pushUrl: true });
-        return;
-      }
-
-      const asTag = resolveTag(raw, tags);
-      if (asTag && raw.replace(/^#/, '').toLowerCase() === asTag.name.toLowerCase()) {
-        await applyFilters({ tag: asTag.slug, q: '' });
-        return;
-      }
-
       await applyFilters({ tag, q: raw });
-    }, 350);
+    }, 280);
+  });
+
+  tagCloudWrap?.addEventListener('click', async (event) => {
+    const link = event.target.closest('[data-tag-slug]');
+    if (!link) return;
+    event.preventDefault();
+    const slug = link.getAttribute('data-tag-slug') || '';
+    const { tag: current } = readFiltersFromUrl();
+    const nextTag = current === slug ? '' : slug;
+    if (input) input.value = '';
+    await applyFilters({ tag: nextTag, q: '' });
   });
 }

@@ -139,6 +139,39 @@ export async function fetchPublicTags() {
 }
 
 /**
+ * Most-used tags on published articles (for tag cloud).
+ * @param {number} [limit=12]
+ * @returns {Promise<{ name: string, slug: string, uses: number }[]>}
+ */
+export async function fetchPopularTags(limit = 12) {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const params = new URLSearchParams({
+      select: 'name,slug,article_tags(count)',
+      order: 'name.asc',
+    });
+    const data = await supabaseRest(`/rest/v1/tags?${params}`);
+    if (!Array.isArray(data)) return [];
+
+    return data
+      .map((row) => {
+        const countRow = Array.isArray(row.article_tags) ? row.article_tags[0] : null;
+        const uses = Number(countRow?.count ?? 0);
+        return { name: row.name, slug: row.slug, uses };
+      })
+      .filter((t) => t.slug && t.uses > 0)
+      .sort((a, b) => b.uses - a.uses || a.name.localeCompare(b.name, 'bg'))
+      .slice(0, limit);
+  } catch (error) {
+    console.error('fetchPopularTags', error);
+    return fetchPublicTags().then((tags) =>
+      tags.slice(0, limit).map((t) => ({ ...t, uses: 0 })),
+    );
+  }
+}
+
+/**
  * @param {string} slugOrName
  * @param {{ name: string, slug: string }[]} [tags]
  */
