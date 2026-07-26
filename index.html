@@ -3,8 +3,68 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Crescendo — музикално образование, практики и вдъхновение" />
     <title>Начало · Crescendo</title>
+    <meta
+      name="description"
+      content="Crescendo — академична платформа за музикално образование: практики, политики, El Sistema, събития и учебни ресурси."
+    />
+    <meta
+      name="keywords"
+      content="музикално образование, Crescendo, педагогика, El Sistema, солфеж, хорове, образователни политики, учебни ресурси"
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://crescendo.bg/index.html" />
+    <meta property="og:site_name" content="Crescendo" />
+    <meta property="og:locale" content="bg_BG" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Начало · Crescendo" />
+    <meta
+      property="og:description"
+      content="Crescendo — академична платформа за музикално образование: практики, политики, El Sistema, събития и учебни ресурси."
+    />
+    <meta property="og:url" content="https://crescendo.bg/index.html" />
+    <meta
+      property="og:image"
+      content="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&h=630&q=80"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Начало · Crescendo" />
+    <meta
+      name="twitter:description"
+      content="Crescendo — академична платформа за музикално образование: практики, политики, El Sistema, събития и учебни ресурси."
+    />
+    <meta
+      name="twitter:image"
+      content="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&h=630&q=80"
+    />
+    <script type="application/ld+json" id="ld-organization">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://crescendo.bg/#organization",
+            "name": "Crescendo",
+            "url": "https://crescendo.bg",
+            "email": "redakcia@crescendo.bg",
+            "description": "Академична платформа за музикално образование."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://crescendo.bg/#website",
+            "url": "https://crescendo.bg",
+            "name": "Crescendo",
+            "inLanguage": "bg-BG",
+            "publisher": { "@id": "https://crescendo.bg/#organization" },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://crescendo.bg/index.html?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body data-page="home">
     <div id="app" class="d-flex flex-column min-vh-100">
@@ -48,7 +108,7 @@
           </div>
         </section>
 
-        <section class="container py-5" id="articles">
+        <section class="container py-5" id="articles" aria-label="Публикации и търсене">
           <div class="row g-4 align-items-start">
             <div class="col-lg-8">
               <div id="activeFilterWrap"></div>

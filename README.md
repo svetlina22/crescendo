@@ -493,11 +493,24 @@ crescendo/
 │   │   ├── articles.js        # CRUD, search, tags TEXT[] (contains / parseTagsInput)
 │   │   ├── events.js
 │   │   └── storage.js         # uploadArticleCover / uploadLessonResource
+│   ├── utils/
+│   │   ├── seo.js             # meta / Open Graph / JSON-LD helpers
+│   │   ├── articleSearch.js   # pure keyword filter (unit-tested)
+│   │   └── articleValidation.js
 │   ├── config/
 │   │   └── supabase.js
 │   └── data/
-│       ├── rubrics.js         # 5 рубрики (slug, path, title)
+│       ├── site.js            # SITE_URL, default OG image, Organization
+│       ├── rubrics.js
 │       └── visuals.js
+│
+├── public/
+│   ├── robots.txt
+│   └── sitemap.xml
+│
+├── tests/
+│   ├── unit/                  # Vitest
+│   └── e2e/                   # Playwright
 │
 └── supabase/
     ├── migrations/            # DDL + RLS + Storage (източник на истина)
@@ -521,6 +534,18 @@ crescendo/
 | `npm run dev` | Dev сървър (Vite) на порт **3000** |
 | `npm run build` | Production build → `dist/` |
 | `npm run preview` | Преглед на build |
+| `npm test` | Unit тестове (Vitest) |
+| `npm run test:e2e` | E2E тестове (Playwright) |
+
+---
+
+## SEO
+
+- Мета тагове (`description`, `keywords`, `robots`), canonical, Open Graph и Twitter Card на публичните страници
+- Динамични `<title>` / OG / JSON-LD (`NewsArticle` + `Article`) при зареждане на `article.html`
+- Organization + WebSite JSON-LD на началната страница
+- `public/robots.txt` и `public/sitemap.xml` (копират се в `dist/` при build)
+- Замени `https://crescendo.bg` с реалния домейн чрез `VITE_SITE_URL` в `.env` (и в `sitemap.xml` / `robots.txt` при нужда)
 
 ---
 

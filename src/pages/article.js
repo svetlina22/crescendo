@@ -2,6 +2,7 @@ import { fetchPublishedArticleBySlug, normalizeTags } from '../services/articles
 import { RUBRICS, getRubricAccent } from '../data/rubrics.js';
 import { getArticleImage } from '../data/visuals.js';
 import { renderTagBadges } from '../components/TagBadges.js';
+import { applyPageSeo, setArticleJsonLd } from '../utils/seo.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -71,18 +72,45 @@ export async function renderArticlePage(_ctx = {}) {
   const slug = (params.get('slug') || '').trim();
 
   if (!slug) {
-    document.title = 'Статията не е намерена · Crescendo';
+    applyPageSeo({
+      title: 'Статията не е намерена',
+      description: 'Заявената статия не е намерена в Crescendo.',
+      path: '/article.html',
+      robots: 'noindex, follow',
+    });
     return notFoundHtml('');
   }
 
   const article = await fetchPublishedArticleBySlug(slug);
 
   if (!article) {
-    document.title = 'Статията не е намерена · Crescendo';
+    applyPageSeo({
+      title: 'Статията не е намерена',
+      description: 'Заявената статия не е намерена в Crescendo.',
+      path: `/article.html?slug=${encodeURIComponent(slug)}`,
+      robots: 'noindex, follow',
+    });
     return notFoundHtml(slug);
   }
 
-  document.title = `${article.title} · Crescendo`;
+  const pagePath = `/article.html?slug=${encodeURIComponent(article.slug)}`;
+  const cover = getArticleImage(article);
+  applyPageSeo({
+    title: article.title,
+    description: article.summary || `${article.title} — статия в Crescendo.`,
+    path: pagePath,
+    image: cover,
+    type: 'article',
+    keywords: [
+      'музикално образование',
+      'Crescendo',
+      article.rubrics?.title,
+      ...(Array.isArray(article.tags) ? article.tags : []),
+    ]
+      .filter(Boolean)
+      .join(', '),
+  });
+  setArticleJsonLd(article, pagePath);
 
   const rubric = article.rubrics;
   const author = article.profiles;

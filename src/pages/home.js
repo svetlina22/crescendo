@@ -8,6 +8,8 @@ import { renderArticlesFeed } from '../components/ArticlesFeed.js';
 import { renderEventsSidebar } from '../components/EventsSidebar.js';
 import { renderTagCloudWidget } from '../components/HomeSidebar.js';
 import { initHeroCarousel } from '../components/HeroCarousel.js';
+import { applyPageSeo, setOrganizationJsonLd } from '../utils/seo.js';
+import { DEFAULT_DESCRIPTION } from '../data/site.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -63,6 +65,13 @@ function loadingBlock(label = 'Зареждане…') {
 
 /** Само динамично съдържание — текстовете са в index.html */
 export async function initHomePage() {
+  applyPageSeo({
+    title: 'Начало',
+    description: DEFAULT_DESCRIPTION,
+    path: '/index.html',
+  });
+  setOrganizationJsonLd();
+
   const form = document.getElementById('articleSearchForm');
   const input = document.getElementById('articleSearchInput');
   const feedEl = document.getElementById('articlesFeed');

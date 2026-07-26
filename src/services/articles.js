@@ -62,6 +62,9 @@ export function parseTagsInput(raw) {
   return out;
 }
 
+/** @deprecated Prefer parseTagsInput — alias for tests / docs */
+export const stringToTagsArray = parseTagsInput;
+
 /**
  * PostgREST `tags=cs.{…}` filter (array contains / `.contains('tags', [tag])`).
  * @param {string} tag

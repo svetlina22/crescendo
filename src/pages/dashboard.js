@@ -15,6 +15,7 @@ import {
   validateCoverImageFile,
   validateLessonResourceFile,
 } from '../services/storage.js';
+import { validateArticleForm } from '../utils/articleValidation.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -710,24 +711,19 @@ export async function initDashboardPage(ctx = {}) {
     let status = statusSelect?.value ?? 'draft';
     const tags = parseTagsInput(tagsInput?.value ?? '');
 
-    if (!title) {
-      showFormError('Въведете заглавие.');
-      titleInput?.focus();
-      return;
-    }
-    if (!rubricId) {
-      showFormError('Изберете рубрика.');
-      rubricSelect?.focus();
-      return;
-    }
-    if (!articleSlug) {
-      showFormError('Въведете адрес след рубриката.');
-      slugInput?.focus();
-      return;
-    }
-    if (!content) {
-      showFormError('Въведете основен текст.');
-      contentInput?.focus();
+    const validation = validateArticleForm({
+      title,
+      rubricId,
+      slug: articleSlug,
+      content,
+    });
+    if (!validation.ok) {
+      const first = validation.errors[0];
+      showFormError(first.message);
+      if (first.field === 'title') titleInput?.focus();
+      else if (first.field === 'rubricId') rubricSelect?.focus();
+      else if (first.field === 'slug') slugInput?.focus();
+      else if (first.field === 'content') contentInput?.focus();
       return;
     }
 
