@@ -18,7 +18,8 @@ Crescendo публикува редакционно съдържание и пр
 | **Учебни PDF/ZIP ресурси** | Незадължителен файл към статия (`file_url`) — ноти, работни листове; качване в Storage bucket `lesson-resources` |
 | **Медия (корици)** | Водещи изображения към статии в bucket `article-covers` (`cover_image_url`) |
 | **Събития** | Календар: концерти, конференции, покани за доклади (`events`) |
-| **Търсачка** | Частично, case-insensitive търсене (`ilike`) в заглавие, резюме, съдържание, тагове и рубрики |
+| **Търсачка** | Частично, case-insensitive търсене (`ilike`) в заглавие, резюме, съдържание и рубрики; съвпадения и в масива `articles.tags` |
+| **Тагове** | Масив от текст (`TEXT[]`) директно в `articles` — баджове, филтър с `contains` / `tags=cs.{tag}` |
 | **Редакторски панел** | Автори и администратори създават/редактират статии; само админ публикува |
 
 > Статичните текстове на публичните страници са в HTML; динамичните данни идват от Supabase чрез Vanilla JS.
@@ -40,6 +41,25 @@ Crescendo публикува редакционно съдържание и пр
 \*Автори могат да създават събития според RLS; пълното управление е за администратори.
 
 **Статуси на статия:** `draft` → `pending` (за преглед) → `published` (само админ).
+
+### Създаване на автори (само от администратор)
+
+Платформата **няма публична регистрация**. Авторите не се самозаписват през сайта — акаунтите се създават ръчно от администратор в Supabase.
+
+| Стъпка | Къде | Какво се задава |
+|--------|------|-----------------|
+| 1. Акаунт за вход | Supabase → **Authentication → Users** → *Add user* | **Имейл** и **парола** на автора (тези данни ползва при `/login.html`) |
+| 2. Профил | Таблица `public.profiles` (редът се създава автоматично при signup/trigger към `auth.users`) | `full_name`, по желание `academic_title`, `bio`, `avatar_url` |
+| 3. Роля | `profiles.role` | `'author'` (по подразбиране) или `'admin'` за администратор |
+
+**Работен поток:**
+
+1. Администраторът създава потребител в **Authentication → Users** с имейл и временна парола.
+2. При създаването на `auth.users` trigger-ът `handle_new_user` добавя ред в `profiles` (обикновено с `role = 'author'`).
+3. Администраторът (или чрез SQL Editor) попълва/коригира `full_name` и при нужда сменя `role` на `'admin'`.
+4. Авторът влиза само през `/login.html` с предоставените имейл и парола и работи в `/dashboard.html`.
+
+> Паролите се съхраняват в **Supabase Auth** (`auth.users`), не в `profiles`. В `profiles` са само публичните/редакционните данни и ролята.
 
 ---
 
@@ -78,7 +98,8 @@ Crescendo публикува редакционно съдържание и пр
 │  • Auth (JWT)               │   │  • article-covers (images)    │
 │  • PostgreSQL + RLS         │   │  • lesson-resources (PDF/ZIP) │
 │  • profiles, rubrics,       │   │  Path: {user_id}/file.ext     │
-│    articles, events, tags   │   └───────────────────────────────┘
+│    articles (tags TEXT[]),  │   └───────────────────────────────┘
+│    events                   │
 └─────────────────────────────┘
 ```
 
@@ -96,8 +117,6 @@ erDiagram
   profiles ||--o{ articles : "author_id"
   profiles ||--o{ events : "author_id"
   rubrics ||--o{ articles : "rubric_id"
-  articles ||--o{ article_tags : "article_id"
-  tags ||--o{ article_tags : "tag_id"
 
   profiles {
     uuid id PK
@@ -124,6 +143,7 @@ erDiagram
     text content
     text cover_image_url
     text file_url
+    text_array tags "TEXT[]"
     int reading_time_min
     text status "draft|pending|published"
     uuid author_id FK
@@ -148,18 +168,9 @@ erDiagram
     uuid author_id FK
     timestamptz created_at
   }
-
-  tags {
-    uuid id PK
-    text name
-    text slug UK
-  }
-
-  article_tags {
-    uuid article_id PK_FK
-    uuid tag_id PK_FK
-  }
 ```
+
+> Таговете **не** са отделни таблици. Колоната `articles.tags` е `TEXT[]` (напр. `{'ноти','피아노','5 клас'}`). Филтър при клик: PostgREST `tags=cs.{tag}` ≡ `.contains('tags', [tag])`.
 
 **Storage (не е SQL таблица в `public`, а Supabase Storage):**
 
@@ -204,6 +215,7 @@ create table public.articles (
   content text,
   cover_image_url text,
   file_url text,
+  tags text[] not null default '{}'::text[],
   reading_time_min integer check (reading_time_min is null or reading_time_min >= 0),
   status text not null default 'draft'
     check (status in ('draft', 'pending', 'published')),
@@ -213,6 +225,8 @@ create table public.articles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create index articles_tags_gin_idx on public.articles using gin (tags);
 
 create table public.events (
   id uuid primary key default gen_random_uuid(),
@@ -230,18 +244,6 @@ create table public.events (
   author_id uuid references public.profiles (id),
   created_at timestamptz not null default now(),
   constraint events_end_after_start check (end_date is null or end_date >= date)
-);
-
-create table public.tags (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  slug text not null unique
-);
-
-create table public.article_tags (
-  article_id uuid not null references public.articles (id) on delete cascade,
-  tag_id uuid not null references public.tags (id) on delete cascade,
-  primary key (article_id, tag_id)
 );
 
 -- Helpers
@@ -266,8 +268,6 @@ alter table public.profiles enable row level security;
 alter table public.rubrics enable row level security;
 alter table public.articles enable row level security;
 alter table public.events enable row level security;
-alter table public.tags enable row level security;
-alter table public.article_tags enable row level security;
 
 -- Guest: само published статии
 create policy articles_select_published
@@ -346,12 +346,23 @@ create policy "Authors upload lesson resources"
   );
 ```
 
-Пълни политики (events, tags, article_tags, update/delete за Storage и т.н.) виж в:
+Пълни политики (events, update/delete за Storage и т.н.) виж в:
 
 - `supabase/migrations/20260725120000_create_crescendo_schema.sql`
 - `supabase/migrations/20260725140000_articles_pending_and_author_crud.sql`
 - `supabase/migrations/20260726100000_article_covers_storage.sql`
 - `supabase/migrations/20260726110000_lesson_resources_storage.sql`
+- `supabase/migrations/20260726120000_articles_tags_text_array.sql` — `articles.tags TEXT[]` (без `tags` / `article_tags`)
+
+### Тагове (TEXT[]) — употреба във фронтенда
+
+| Действие | Реализация |
+|----------|------------|
+| Въвеждане в панела | `#tags-input` — низ, разделен със запетаи → `parseTagsInput()` → `string[]` |
+| Запис | колона `articles.tags` в create/update payload |
+| Баджове | `normalizeTags()` + `TagBadges` на картички и `article.html` |
+| Филтър при клик | `tags=cs.{tag}` (PostgREST contains) → `?tag=` на началото |
+| Търсене | `ilike` по title/summary/content + съвпадение в елементите на `tags` |
 
 ---
 
@@ -381,8 +392,11 @@ npm install
    - **`article-covers`** — public, изображения, ≤ 5 MB  
    - **`lesson-resources`** — public, PDF/ZIP, ≤ 20 MB  
    (създават се от съответните миграции; може да се проверят в **Storage**).
-5. В **Authentication → Users** създай потребител за автор/админ.  
-   В таблица `profiles` задай `role = 'admin'` за администратор (по подразбиране е `author`).
+5. **Създай потребители (админ управлява авторите):**
+   - Няма публична регистрация на сайта.
+   - В **Authentication → Users** създай акаунти с **имейл и парола** за всеки автор (и за администратора).
+   - В таблица `profiles` попълни `full_name` (и др.) и задай `role = 'admin'` само за администратора; авторите остават с `role = 'author'`.
+   - Подробности: секция [Създаване на автори (само от администратор)](#създаване-на-автори-само-от-администратор).
 
 ### 3) API ключове
 
@@ -476,7 +490,7 @@ crescendo/
 │   ├── components/            # Header, Footer, HeroCarousel, ArticlesFeed…
 │   ├── services/              # Supabase API слой
 │   │   ├── auth.js
-│   │   ├── articles.js        # Вкл. searchPublishedArticles (ilike)
+│   │   ├── articles.js        # CRUD, search, tags TEXT[] (contains / parseTagsInput)
 │   │   ├── events.js
 │   │   └── storage.js         # uploadArticleCover / uploadLessonResource
 │   ├── config/

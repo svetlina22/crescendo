@@ -1,13 +1,13 @@
 import { isSupabaseConfigured, supabaseRest, supabaseRestAuth } from '../config/supabase.js';
 
 const PUBLIC_ARTICLE_LIST_SELECT =
-  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics(title,slug),profiles(full_name,academic_title),tags(name,slug)';
+  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,tags,rubrics(title,slug),profiles(full_name,academic_title)';
 
 const PUBLIC_ARTICLE_DETAIL_SELECT =
-  'id,title,slug,summary,content,reading_time_min,published_at,cover_image_url,file_url,rubrics(id,title,slug),profiles(full_name,academic_title),tags(name,slug)';
+  'id,title,slug,summary,content,reading_time_min,published_at,cover_image_url,file_url,tags,rubrics(id,title,slug),profiles(full_name,academic_title)';
 
 const ARTICLE_SELECT =
-  'id,title,slug,summary,content,cover_image_url,file_url,status,published_at,created_at,updated_at,author_id,rubric_id,rubrics(id,title,slug),profiles(full_name,academic_title,role),tags(id,name,slug)';
+  'id,title,slug,summary,content,cover_image_url,file_url,tags,status,published_at,created_at,updated_at,author_id,rubric_id,rubrics(id,title,slug),profiles(full_name,academic_title,role)';
 
 /**
  * @param {string} title
@@ -27,7 +27,7 @@ export function slugifyTitle(title) {
 }
 
 /**
- * Stable slug for tags (no timestamp).
+ * Stable slug helper (article paths).
  * @param {string} name
  */
 export function slugifyTag(name) {
@@ -43,26 +43,67 @@ export function slugifyTag(name) {
 }
 
 /**
- * @param {string} slug
+ * Parse comma-separated tags input → unique trimmed strings.
+ * @param {string} raw
+ * @returns {string[]}
  */
-export function tagFilterHref(slug) {
-  if (!slug) return '/index.html';
-  return `/index.html?tag=${encodeURIComponent(slug)}`;
+export function parseTagsInput(raw) {
+  const seen = new Set();
+  /** @type {string[]} */
+  const out = [];
+  for (const part of String(raw ?? '').split(',')) {
+    const tag = part.trim().replace(/^#/, '');
+    if (!tag) continue;
+    const key = tag.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(tag);
+  }
+  return out;
 }
 
 /**
- * Normalize tags from PostgREST embed (array or nested).
+ * PostgREST `tags=cs.{…}` filter (array contains / `.contains('tags', [tag])`).
+ * @param {string} tag
+ * @returns {string | null}
+ */
+export function tagsContainsFilter(tag) {
+  const value = String(tag ?? '').trim();
+  if (!value) return null;
+  if (/[",{}\\\s]/.test(value)) {
+    const escaped = value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return `cs.{"${escaped}"}`;
+  }
+  return `cs.{${value}}`;
+}
+
+/**
+ * @param {string} tag
+ */
+export function tagFilterHref(tag) {
+  if (!tag) return '/index.html';
+  return `/index.html?tag=${encodeURIComponent(tag)}`;
+}
+
+/**
+ * Normalize `articles.tags` TEXT[] for badges/UI.
  * @param {unknown} raw
- * @returns {{ id?: string, name: string, slug: string }[]}
+ * @returns {{ name: string, slug: string }[]}
  */
 export function normalizeTags(raw) {
   if (!Array.isArray(raw)) return [];
   return raw
     .map((t) => {
+      if (typeof t === 'string') {
+        const name = t.trim();
+        if (!name) return null;
+        return { name, slug: name };
+      }
       if (!t || typeof t !== 'object') return null;
-      const row = /** @type {{ id?: string, name?: string, slug?: string }} */ (t);
-      if (!row.name || !row.slug) return null;
-      return { id: row.id, name: row.name, slug: row.slug };
+      const row = /** @type {{ name?: string, slug?: string }} */ (t);
+      const name = String(row.name || row.slug || '').trim();
+      if (!name) return null;
+      return { name, slug: String(row.slug || name).trim() || name };
     })
     .filter(Boolean);
 }
@@ -76,7 +117,6 @@ export async function fetchPublishedArticles(limit = 8) {
 }
 
 /**
- * Strip characters that break PostgREST filter syntax / widen LIKE too much.
  * @param {string} raw
  */
 function sanitizeSearchTerm(raw) {
@@ -90,7 +130,6 @@ function sanitizeSearchTerm(raw) {
 }
 
 /**
- * PostgREST ilike value (`*` → SQL `%`). Quote when needed.
  * @param {string} term
  */
 function ilikePattern(term) {
@@ -100,7 +139,7 @@ function ilikePattern(term) {
 }
 
 /**
- * @param {string} columnsCsv e.g. "title,summary,content"
+ * @param {string} columnsCsv
  * @param {string} term
  */
 function orIlike(columnsCsv, term) {
@@ -132,19 +171,22 @@ function mergeArticlesById(lists, limit) {
     .slice(0, limit);
 }
 
-const LIST_SELECT_TAGS_INNER =
-  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)';
-
 const LIST_SELECT_RUBRICS_INNER =
-  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics!inner(title,slug),profiles(full_name,academic_title),tags(name,slug)';
+  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,tags,rubrics!inner(title,slug),profiles(full_name,academic_title)';
 
-const LIST_SELECT_TAGS_AND_RUBRICS_INNER =
-  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics!inner(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)';
+/**
+ * @param {URLSearchParams} params
+ * @param {string} tag
+ */
+function applyTagContains(params, tag) {
+  const filter = tagsContainsFilter(tag);
+  if (filter) params.set('tags', filter);
+}
 
 /**
  * Public article search / tag filter.
- * Free-text `q` uses case-insensitive partial match (ilike) on title, summary,
- * content, tags (name/slug), and rubrics/categories (title/slug).
+ * - `tag`: exact membership via `tags=cs.{tag}` (contains)
+ * - `q`: ilike on title/summary/content + match in tags TEXT[] + rubrics
  *
  * @param {{ limit?: number, tag?: string, q?: string }} [opts]
  * @returns {Promise<Array>}
@@ -152,70 +194,81 @@ const LIST_SELECT_TAGS_AND_RUBRICS_INNER =
 export async function searchPublishedArticles({ limit = 24, tag = '', q = '' } = {}) {
   if (!isSupabaseConfigured()) return [];
 
-  const tagSlug = String(tag ?? '').trim();
+  const tagFilter = String(tag ?? '').trim();
   const query = sanitizeSearchTerm(q);
 
   try {
     if (!query) {
       const params = new URLSearchParams({
+        select: PUBLIC_ARTICLE_LIST_SELECT,
         status: 'eq.published',
         order: 'published_at.desc',
         limit: String(limit),
       });
-
-      if (tagSlug) {
-        params.set('select', LIST_SELECT_TAGS_INNER);
-        params.set('tags.slug', `eq.${tagSlug}`);
-      } else {
-        params.set('select', PUBLIC_ARTICLE_LIST_SELECT);
-      }
+      if (tagFilter) applyTagContains(params, tagFilter);
 
       const data = await supabaseRest(`/rest/v1/articles?${params}`);
       return Array.isArray(data) ? data : [];
     }
 
-    // PostgREST cannot OR local columns with related-table filters in one
-    // reliable join, so we run parallel queries and merge by id.
     const fetchLimit = String(Math.min(Math.max(limit * 2, limit), 80));
+    const qLower = query.toLowerCase();
 
     const textParams = new URLSearchParams({
+      select: PUBLIC_ARTICLE_LIST_SELECT,
       status: 'eq.published',
       order: 'published_at.desc',
       limit: fetchLimit,
-      select: tagSlug ? LIST_SELECT_TAGS_INNER : PUBLIC_ARTICLE_LIST_SELECT,
       or: orIlike('title,summary,content', query),
     });
-    if (tagSlug) textParams.set('tags.slug', `eq.${tagSlug}`);
-
-    const tagParams = new URLSearchParams({
-      status: 'eq.published',
-      order: 'published_at.desc',
-      limit: fetchLimit,
-      select: LIST_SELECT_TAGS_INNER,
-    });
-    tagParams.set('tags.or', orIlike('name,slug', query));
-    if (tagSlug) tagParams.set('tags.slug', `eq.${tagSlug}`);
+    if (tagFilter) applyTagContains(textParams, tagFilter);
 
     const rubricParams = new URLSearchParams({
+      select: LIST_SELECT_RUBRICS_INNER,
       status: 'eq.published',
       order: 'published_at.desc',
       limit: fetchLimit,
-      select: tagSlug ? LIST_SELECT_TAGS_AND_RUBRICS_INNER : LIST_SELECT_RUBRICS_INNER,
     });
     rubricParams.set('rubrics.or', orIlike('title,slug', query));
-    if (tagSlug) rubricParams.set('tags.slug', `eq.${tagSlug}`);
+    if (tagFilter) applyTagContains(rubricParams, tagFilter);
 
-    const [textHits, tagHits, rubricHits] = await Promise.all([
+    const exactTagParams = new URLSearchParams({
+      select: PUBLIC_ARTICLE_LIST_SELECT,
+      status: 'eq.published',
+      order: 'published_at.desc',
+      limit: fetchLimit,
+    });
+    // Prefer active tag filter; otherwise match query as exact tag membership
+    applyTagContains(exactTagParams, tagFilter || query);
+
+    const tagScanParams = new URLSearchParams({
+      select: PUBLIC_ARTICLE_LIST_SELECT,
+      status: 'eq.published',
+      order: 'published_at.desc',
+      limit: '120',
+      tags: 'not.is.null',
+    });
+    if (tagFilter) applyTagContains(tagScanParams, tagFilter);
+
+    const [textHits, rubricHits, exactTagHits, tagScan] = await Promise.all([
       supabaseRest(`/rest/v1/articles?${textParams}`),
-      supabaseRest(`/rest/v1/articles?${tagParams}`),
       supabaseRest(`/rest/v1/articles?${rubricParams}`),
+      supabaseRest(`/rest/v1/articles?${exactTagParams}`).catch(() => []),
+      supabaseRest(`/rest/v1/articles?${tagScanParams}`),
     ]);
+
+    const partialTagHits = (Array.isArray(tagScan) ? tagScan : []).filter((article) =>
+      (Array.isArray(article.tags) ? article.tags : []).some((t) =>
+        String(t).toLowerCase().includes(qLower),
+      ),
+    );
 
     return mergeArticlesById(
       [
         Array.isArray(textHits) ? textHits : [],
-        Array.isArray(tagHits) ? tagHits : [],
         Array.isArray(rubricHits) ? rubricHits : [],
+        Array.isArray(exactTagHits) ? exactTagHits : [],
+        partialTagHits,
       ],
       limit,
     );
@@ -226,26 +279,14 @@ export async function searchPublishedArticles({ limit = 24, tag = '', q = '' } =
 }
 
 /**
- * @returns {Promise<{ name: string, slug: string }[]>}
+ * @returns {Promise<{ name: string, slug: string, uses: number }[]>}
  */
 export async function fetchPublicTags() {
-  if (!isSupabaseConfigured()) return [];
-
-  try {
-    const params = new URLSearchParams({
-      select: 'name,slug',
-      order: 'name.asc',
-    });
-    const data = await supabaseRest(`/rest/v1/tags?${params}`);
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error('fetchPublicTags', error);
-    return [];
-  }
+  return fetchPopularTags(100);
 }
 
 /**
- * Most-used tags on published articles (for tag cloud).
+ * Most-used tags from published articles' `tags` arrays.
  * @param {number} [limit=12]
  * @returns {Promise<{ name: string, slug: string, uses: number }[]>}
  */
@@ -253,11 +294,32 @@ export async function fetchPopularTags(limit = 12) {
   if (!isSupabaseConfigured()) return [];
 
   try {
-    const tags = await fetchPublicTags();
-    if (tags.length) {
-      return tags.slice(0, limit).map((t) => ({ ...t, uses: 0 }));
+    const params = new URLSearchParams({
+      select: 'tags',
+      status: 'eq.published',
+      tags: 'not.is.null',
+      limit: '200',
+    });
+    const data = await supabaseRest(`/rest/v1/articles?${params}`);
+    if (!Array.isArray(data)) return [];
+
+    /** @type {Map<string, { name: string, uses: number }>} */
+    const counts = new Map();
+    for (const row of data) {
+      for (const raw of Array.isArray(row.tags) ? row.tags : []) {
+        const name = String(raw ?? '').trim();
+        if (!name) continue;
+        const key = name.toLowerCase();
+        const prev = counts.get(key);
+        if (prev) prev.uses += 1;
+        else counts.set(key, { name, uses: 1 });
+      }
     }
-    return [];
+
+    return Array.from(counts.values())
+      .sort((a, b) => b.uses - a.uses || a.name.localeCompare(b.name, 'bg'))
+      .slice(0, limit)
+      .map((t) => ({ name: t.name, slug: t.name, uses: t.uses }));
   } catch (error) {
     console.error('fetchPopularTags', error);
     return [];
@@ -275,11 +337,12 @@ export function resolveTag(slugOrName, tags = []) {
     .replace(/^#/, '');
   if (!needle) return null;
 
-  return (
-    tags.find(
-      (t) => t.slug.toLowerCase() === needle || t.name.toLowerCase() === needle,
-    ) ?? null
+  const found = tags.find(
+    (t) => t.slug.toLowerCase() === needle || t.name.toLowerCase() === needle,
   );
+  if (found) return found;
+  const raw = String(slugOrName ?? '').trim().replace(/^#/, '');
+  return raw ? { name: raw, slug: raw } : null;
 }
 
 /**
@@ -316,7 +379,7 @@ export async function fetchPublishedArticlesByRubric(rubricSlug, limit = 20) {
   try {
     const params = new URLSearchParams({
       select:
-        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics!inner(title,slug),profiles(full_name,academic_title),tags(name,slug)',
+        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,tags,rubrics!inner(title,slug),profiles(full_name,academic_title)',
       status: 'eq.published',
       order: 'published_at.desc',
       limit: String(limit),
@@ -377,130 +440,6 @@ export async function fetchRubrics(accessToken) {
   } catch (error) {
     console.error('fetchRubrics', error);
     return [];
-  }
-}
-
-/**
- * All tags for the article editor (id, name, slug).
- * @param {string} accessToken
- * @returns {Promise<{ id: string, name: string, slug: string }[]>}
- */
-export async function fetchPanelTags(accessToken) {
-  if (!isSupabaseConfigured() || !accessToken) return [];
-
-  try {
-    const params = new URLSearchParams({
-      select: 'id,name,slug',
-      order: 'name.asc',
-    });
-    const data = await supabaseRestAuth(`/rest/v1/tags?${params}`, accessToken);
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error('fetchPanelTags', error);
-    return [];
-  }
-}
-
-/**
- * @param {string} accessToken
- * @param {{ name: string, slug: string }} payload
- */
-export async function createTag(accessToken, payload) {
-  const data = await supabaseRestAuth('/rest/v1/tags', accessToken, {
-    method: 'POST',
-    body: payload,
-    prefer: 'return=representation',
-    timeoutMs: 15000,
-  });
-  return Array.isArray(data) ? data[0] : data;
-}
-
-/**
- * Find existing tags by slug/name or create missing ones.
- * @param {string} accessToken
- * @param {{ name: string, slug: string }[]} draftTags
- * @returns {Promise<string[]>} tag ids
- */
-export async function resolveOrCreateTagIds(accessToken, draftTags = []) {
-  if (!draftTags.length) return [];
-
-  const existing = await fetchPanelTags(accessToken);
-  const ids = [];
-
-  for (const draft of draftTags) {
-    const name = String(draft.name ?? '').trim();
-    const slug = slugifyTag(draft.slug || name);
-    if (!name || !slug) continue;
-
-    const found = existing.find(
-      (t) =>
-        t.slug.toLowerCase() === slug.toLowerCase() ||
-        t.name.toLowerCase() === name.toLowerCase(),
-    );
-
-    if (found?.id) {
-      ids.push(found.id);
-      continue;
-    }
-
-    try {
-      const created = await createTag(accessToken, { name, slug });
-      if (created?.id) {
-        existing.push(created);
-        ids.push(created.id);
-      }
-    } catch (error) {
-      // Race: another request created the same slug — fetch again
-      const refreshed = await fetchPanelTags(accessToken);
-      const again = refreshed.find((t) => t.slug === slug);
-      if (again?.id) {
-        existing.push(again);
-        ids.push(again.id);
-      } else {
-        throw error;
-      }
-    }
-  }
-
-  return [...new Set(ids)];
-}
-
-/**
- * Replace article ↔ tag links with the given tag ids.
- * @param {string} accessToken
- * @param {string} articleId
- * @param {string[]} tagIds
- */
-export async function setArticleTags(accessToken, articleId, tagIds = []) {
-  const uniqueIds = [...new Set(tagIds.filter(Boolean))];
-
-  const current = await supabaseRestAuth(
-    `/rest/v1/article_tags?article_id=eq.${encodeURIComponent(articleId)}&select=tag_id`,
-    accessToken,
-  );
-  const currentIds = Array.isArray(current)
-    ? current.map((row) => row.tag_id).filter(Boolean)
-    : [];
-
-  const toAdd = uniqueIds.filter((id) => !currentIds.includes(id));
-  const toRemove = currentIds.filter((id) => !uniqueIds.includes(id));
-
-  if (toRemove.length > 0) {
-    const inList = toRemove.map(encodeURIComponent).join(',');
-    await supabaseRestAuth(
-      `/rest/v1/article_tags?article_id=eq.${encodeURIComponent(articleId)}&tag_id=in.(${inList})`,
-      accessToken,
-      { method: 'DELETE', prefer: 'return=minimal', timeoutMs: 15000 },
-    );
-  }
-
-  if (toAdd.length > 0) {
-    await supabaseRestAuth('/rest/v1/article_tags', accessToken, {
-      method: 'POST',
-      body: toAdd.map((tag_id) => ({ article_id: articleId, tag_id })),
-      prefer: 'return=minimal',
-      timeoutMs: 15000,
-    });
   }
 }
 

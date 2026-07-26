@@ -4,9 +4,8 @@ import {
   fetchPanelArticles,
   fetchRubrics,
   normalizeTags,
-  resolveOrCreateTagIds,
+  parseTagsInput,
   setArticleStatus,
-  setArticleTags,
   slugifyTag,
   updateArticle,
 } from '../services/articles.js';
@@ -76,32 +75,6 @@ function rubricOptionsHtml(rubrics = [], selectedId = '') {
     )
     .join('');
   return `<option value="">Изберете рубрика…</option>${items}`;
-}
-
-/**
- * @param {{ name: string, slug: string }[]} draftTags
- */
-function draftTagsPillsHtml(draftTags = []) {
-  if (draftTags.length === 0) {
-    return `<span class="small text-secondary">Все още няма добавени тагове.</span>`;
-  }
-
-  return draftTags
-    .map(
-      (tag, index) => `
-      <span class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">
-        #${escapeHtml(tag.slug)}
-        <button
-          type="button"
-          class="btn-close btn-close-white"
-          style="font-size: 0.55rem"
-          data-remove-tag="${index}"
-          aria-label="Премахни ${escapeHtml(tag.slug)}"
-        ></button>
-      </span>
-    `,
-    )
-    .join('');
 }
 
 function renderStats(articles, isAdmin) {
@@ -361,27 +334,17 @@ function modalHtml(isAdmin, rubrics = []) {
               <textarea class="form-control" id="articleContent" name="content" rows="8"></textarea>
             </div>
             <div class="mb-3">
-              <label for="newTagSlug" class="form-label">Тагове</label>
-              <div id="draftTagsWrap" class="d-flex flex-wrap gap-2 mb-2">
-                ${draftTagsPillsHtml([])}
-              </div>
-              <div class="input-group">
-                <span class="input-group-text">#</span>
-                <input
-                  type="text"
-                  class="form-control font-monospace"
-                  id="newTagSlug"
-                  placeholder="напр. solfezh"
-                  maxlength="80"
-                  autocomplete="off"
-                  spellcheck="false"
-                />
-                <button type="button" class="btn btn-outline-secondary" id="addTagBtn">
-                  Добави
-                </button>
-              </div>
+              <label for="tags-input" class="form-label">Тагове</label>
+              <input
+                type="text"
+                class="form-control"
+                id="tags-input"
+                name="tags"
+                placeholder="ноти, пиано, 5 клас, методика"
+                autocomplete="off"
+              />
               <div class="form-text">
-                Добавете идентификатор на таг. Натиснете „Въведи“ или бутона „Добави“.
+                Разделете таговете със запетая. Записват се като масив от текст към статията.
               </div>
             </div>
             <div class="mb-0">
@@ -482,8 +445,6 @@ export async function initDashboardPage(ctx = {}) {
 
   let articles = await fetchPanelArticles({ userId, accessToken, isAdmin });
   let rubrics = await fetchRubrics(accessToken);
-  /** @type {{ name: string, slug: string }[]} */
-  let draftTags = [];
 
   const modalEl = document.getElementById('articleModal');
   const form = document.getElementById('articleForm');
@@ -505,9 +466,7 @@ export async function initDashboardPage(ctx = {}) {
   const statusSelect = document.getElementById('articleStatus');
   const idInput = document.getElementById('articleId');
   const modalLabel = document.getElementById('articleModalLabel');
-  const draftTagsWrap = document.getElementById('draftTagsWrap');
-  const newTagSlugInput = document.getElementById('newTagSlug');
-  const addTagBtn = document.getElementById('addTagBtn');
+  const tagsInput = document.getElementById('tags-input');
   const coverInput = document.getElementById('articleCoverInput');
   const coverUrlInput = document.getElementById('articleCoverUrl');
   const coverPreviewWrap = document.getElementById('articleCoverPreviewWrap');
@@ -655,43 +614,6 @@ export async function initDashboardPage(ctx = {}) {
     }
   }
 
-  function clearTagInputs() {
-    if (newTagSlugInput) newTagSlugInput.value = '';
-  }
-
-  function renderDraftTags() {
-    if (!draftTagsWrap) return;
-    draftTagsWrap.innerHTML = draftTagsPillsHtml(draftTags);
-  }
-
-  /**
-   * @param {{ quiet?: boolean }} [opts]
-   * @returns {boolean}
-   */
-  function addDraftTagFromFields(opts = {}) {
-    const slug = slugifyTag((newTagSlugInput?.value || '').trim().replace(/^#/, ''));
-
-    if (!slug) {
-      if (!opts.quiet) {
-        showFormError('Въведете идентификатор на таг.');
-        newTagSlugInput?.focus();
-      }
-      return false;
-    }
-
-    const exists = draftTags.some((t) => t.slug === slug);
-    if (exists) {
-      if (!opts.quiet) showFormError('Този идентификатор вече е добавен.');
-      return false;
-    }
-
-    draftTags.push({ name: slug, slug });
-    clearTagInputs();
-    clearFormError();
-    renderDraftTags();
-    return true;
-  }
-
   async function ensureRubrics() {
     if (rubrics.length === 0) {
       rubrics = await fetchRubrics(accessToken);
@@ -702,12 +624,10 @@ export async function initDashboardPage(ctx = {}) {
   function openCreateModal() {
     form.reset();
     idInput.value = '';
-    draftTags = [];
     articleSlugTouched = false;
     resetCoverFields();
     resetResourceFields();
-    renderDraftTags();
-    clearTagInputs();
+    if (tagsInput) tagsInput.value = '';
     if (slugInput) slugInput.value = '';
     if (modalLabel) modalLabel.textContent = 'Нова статия';
     ensureRubrics().then((list) => {
@@ -759,12 +679,11 @@ export async function initDashboardPage(ctx = {}) {
       updateSlugPathPreview();
     });
 
-    draftTags = normalizeTags(article.tags).map((t) => ({
-      name: t.name || t.slug,
-      slug: t.slug,
-    }));
-    renderDraftTags();
-    clearTagInputs();
+    if (tagsInput) {
+      tagsInput.value = normalizeTags(article.tags)
+        .map((t) => t.name || t.slug)
+        .join(', ');
+    }
 
     const selectedStatus =
       !isAdmin && article.status === 'published' ? 'pending' : article.status || 'draft';
@@ -789,11 +708,7 @@ export async function initDashboardPage(ctx = {}) {
     const rubricId = rubricSelect?.value ?? '';
     const articleSlug = slugifyTag(slugInput?.value ?? '');
     let status = statusSelect?.value ?? 'draft';
-
-    // Flush pending tag field before save
-    if ((newTagSlugInput?.value || '').trim()) {
-      addDraftTagFromFields({ quiet: true });
-    }
+    const tags = parseTagsInput(tagsInput?.value ?? '');
 
     if (!title) {
       showFormError('Въведете заглавие.');
@@ -828,6 +743,7 @@ export async function initDashboardPage(ctx = {}) {
       content,
       rubric_id: rubricId,
       status,
+      tags,
     };
 
     if (isAdmin && status === 'published') {
@@ -891,8 +807,6 @@ export async function initDashboardPage(ctx = {}) {
           '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Запазване…';
       }
 
-      let articleId = id;
-
       if (id) {
         if (!isAdmin) {
           const existing = articles.find((a) => a.id === id);
@@ -911,15 +825,11 @@ export async function initDashboardPage(ctx = {}) {
           payload.status = status === 'published' ? 'pending' : status;
         }
         const created = await createArticle(accessToken, payload);
-        articleId = created?.id;
-        if (!articleId) {
-          throw new Error('Статията е създадена, но липсва идентификатор за таговете.');
+        if (!created?.id) {
+          throw new Error('Статията е създадена, но липсва идентификатор.');
         }
         showToast('Статията е създадена.');
       }
-
-      const tagIds = await resolveOrCreateTagIds(accessToken, draftTags);
-      await setArticleTags(accessToken, articleId, tagIds);
 
       modal.hide();
       await reloadArticles();
@@ -1038,31 +948,6 @@ export async function initDashboardPage(ctx = {}) {
     if (articleSlugTouched || !slugInput || idInput.value) return;
     slugInput.value = slugifyTag(titleInput.value);
     updateSlugPathPreview();
-  });
-
-  draftTagsWrap?.addEventListener('click', (event) => {
-    const btn = event.target.closest('[data-remove-tag]');
-    if (!btn) return;
-    const index = Number(btn.dataset.removeTag);
-    if (Number.isNaN(index)) return;
-    draftTags = draftTags.filter((_, i) => i !== index);
-    renderDraftTags();
-  });
-
-  addTagBtn?.addEventListener('click', () => {
-    addDraftTagFromFields();
-  });
-
-  newTagSlugInput?.addEventListener('blur', () => {
-    if (!newTagSlugInput?.value.trim()) return;
-    newTagSlugInput.value = slugifyTag(newTagSlugInput.value);
-  });
-
-  newTagSlugInput?.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      addDraftTagFromFields();
-    }
   });
 
   articlesWrap.addEventListener('click', async (event) => {
