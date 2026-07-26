@@ -30,7 +30,7 @@ export function renderTagCloudWidget(tags = [], activeSlug = '') {
       : `<div class="d-flex flex-wrap gap-2" id="tagCloud">
           ${tags
             .map((tag) => {
-              const label = tag.slug || tag.name;
+              const label = tag.name || tag.slug;
               const active = activeSlug === tag.slug;
               return `<a href="${tagFilterHref(tag.slug)}" class="badge-tag${active ? ' badge-tag--active' : ''}"
                 data-tag-slug="${escapeHtml(tag.slug)}">#${escapeHtml(label)}</a>`;

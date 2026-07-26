@@ -95,7 +95,7 @@ export async function initHomePage() {
   async function applyFilters({ tag = '', q = '', pushUrl = true, initial = false } = {}) {
     const matchedTag = resolveTag(tag, popularTags);
     const tagSlug = matchedTag?.slug || tag;
-    const tagLabel = matchedTag?.slug || matchedTag?.name || tagSlug;
+    const tagLabel = matchedTag?.name || matchedTag?.slug || tagSlug;
     if (pushUrl) writeFiltersToUrl({ tag: tagSlug, q });
     if (filterWrap) {
       filterWrap.innerHTML = renderActiveFilter({ tag: tagSlug, q, tagLabel });

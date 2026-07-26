@@ -24,7 +24,7 @@ export function renderTagBadges(tagsRaw, options = {}) {
 
   const badges = tags
     .map((tag) => {
-      const label = tag.slug || tag.name;
+      const label = tag.name || tag.slug;
       return `
       <a
         href="${tagFilterHref(tag.slug)}"

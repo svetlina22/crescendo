@@ -15,7 +15,7 @@ export async function renderAddEventPage() {
   return `
     <section class="container py-5" style="max-width: 40rem">
       <div class="mb-4">
-        <p class="text-uppercase small fw-semibold text-secondary mb-2">Админ</p>
+        <p class="text-uppercase small fw-semibold text-secondary mb-2">Администратор</p>
         <h1 class="h2 mb-2">Добавяне на събитие</h1>
         <p class="text-secondary mb-0">
           Попълнете формата, за да добавите ново събитие в календара.
@@ -52,7 +52,7 @@ export async function renderAddEventPage() {
         </div>
 
         <div class="mb-3">
-          <label for="eventLocation" class="form-label">Място / Локация</label>
+          <label for="eventLocation" class="form-label">Място</label>
           <input
             type="text"
             class="form-control"
@@ -70,13 +70,13 @@ export async function renderAddEventPage() {
           <label for="eventStatus" class="form-label">Статус</label>
           <select class="form-select" id="eventStatus" name="status" required>
             <option value="upcoming" selected>Предстоящо</option>
-            <option value="call_for_papers">Call for Papers</option>
+            <option value="call_for_papers">Покана за доклади</option>
             <option value="past">Изминало</option>
           </select>
         </div>
 
         <div class="mb-3">
-          <label for="eventImageUrl" class="form-label">Линк към снимка / Image URL</label>
+          <label for="eventImageUrl" class="form-label">Линк към снимка</label>
           <input
             type="text"
             class="form-control"

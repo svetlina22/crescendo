@@ -12,7 +12,7 @@ export function isSupabaseConfigured() {
  */
 export async function supabaseRest(path, timeoutMs = 10000) {
   if (!isSupabaseConfigured()) {
-    throw new Error('Supabase is not configured');
+    throw new Error('Supabase не е конфигуриран.');
   }
 
   const controller = new AbortController();
@@ -33,7 +33,7 @@ export async function supabaseRest(path, timeoutMs = 10000) {
 
     if (!response.ok) {
       const body = await response.text();
-      throw new Error(`Supabase ${response.status}: ${body.slice(0, 200)}`);
+      throw new Error(`Грешка от Supabase (${response.status}): ${body.slice(0, 200)}`);
     }
 
     return response.json();
@@ -55,10 +55,10 @@ export async function supabaseRest(path, timeoutMs = 10000) {
  */
 export async function supabaseRestAuth(path, accessToken, options = {}) {
   if (!isSupabaseConfigured()) {
-    throw new Error('Supabase is not configured');
+    throw new Error('Supabase не е конфигуриран.');
   }
   if (!accessToken) {
-    throw new Error('Missing access token');
+    throw new Error('Липсва токен за достъп.');
   }
 
   const {
@@ -97,7 +97,7 @@ export async function supabaseRestAuth(path, accessToken, options = {}) {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Supabase ${response.status}: ${text.slice(0, 300)}`);
+      throw new Error(`Грешка от Supabase (${response.status}): ${text.slice(0, 300)}`);
     }
 
     if (response.status === 204) return null;

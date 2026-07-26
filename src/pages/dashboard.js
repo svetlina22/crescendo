@@ -281,7 +281,7 @@ function modalHtml(isAdmin, rubrics = []) {
               </select>
             </div>
             <div class="mb-3">
-              <label for="articleSlug" class="form-label">Slug <span class="text-danger">*</span></label>
+              <label for="articleSlug" class="form-label">Адрес в уеб пътя <span class="text-danger">*</span></label>
               <div class="input-group">
                 <span class="input-group-text font-monospace small" id="articleSlugPrefix">/crescendo/…/</span>
                 <input
@@ -289,19 +289,19 @@ function modalHtml(isAdmin, rubrics = []) {
                   class="form-control font-monospace"
                   id="articleSlug"
                   name="slug"
-                  placeholder="name-of-article"
+                  placeholder="ime-na-statiya"
                   maxlength="80"
                   autocomplete="off"
                   spellcheck="false"
                 />
               </div>
               <div class="form-text mb-0">
-                Ръчен URL след рубриката. Пълен адрес:
+                Ръчен адрес след рубриката. Пълен адрес:
                 <code id="articleSlugPreview">/crescendo/…/</code>
               </div>
             </div>
             <div class="mb-3">
-              <label for="articleSummary" class="form-label">Резюме / Abstract</label>
+              <label for="articleSummary" class="form-label">Резюме</label>
               <textarea class="form-control" id="articleSummary" name="summary" rows="3"></textarea>
             </div>
             <div class="mb-3">
@@ -314,7 +314,7 @@ function modalHtml(isAdmin, rubrics = []) {
                 accept="image/jpeg,image/png,image/webp,image/gif"
               />
               <div class="form-text">
-                JPEG, PNG, WebP или GIF · макс. 5&nbsp;MB. Записва се публично в Storage.
+                JPEG, PNG, WebP или GIF · макс. 5&nbsp;МБ. Записва се публично във файловото хранилище.
               </div>
               <input type="hidden" id="articleCoverUrl" name="cover_image_url" value="" />
               <div id="articleCoverPreviewWrap" class="mt-2 d-none">
@@ -338,7 +338,7 @@ function modalHtml(isAdmin, rubrics = []) {
               <textarea class="form-control" id="articleContent" name="content" rows="8"></textarea>
             </div>
             <div class="mb-3">
-              <label for="newTagSlug" class="form-label">Tags</label>
+              <label for="newTagSlug" class="form-label">Тагове</label>
               <div id="draftTagsWrap" class="d-flex flex-wrap gap-2 mb-2">
                 ${draftTagsPillsHtml([])}
               </div>
@@ -358,7 +358,7 @@ function modalHtml(isAdmin, rubrics = []) {
                 </button>
               </div>
               <div class="form-text">
-                Ръчно добавяне на tag slug. Enter или Добави.
+                Добавете идентификатор на таг. Натиснете „Въведи“ или бутона „Добави“.
               </div>
             </div>
             <div class="mb-0">
@@ -392,7 +392,7 @@ export async function renderDashboardPage(ctx = {}) {
   const userId = ctx.user?.id;
   const accessToken = ctx.accessToken;
   const isAdmin = ctx.role === 'admin';
-  const title = isAdmin ? 'Редакторски / Админ панел' : 'Авторски панел';
+  const title = isAdmin ? 'Редакторски / Администраторски панел' : 'Авторски панел';
   const subtitle = isAdmin
     ? 'Преглед и управление на всички статии в системата.'
     : 'Управление на вашите материали — чернови и статии за преглед.';
@@ -605,7 +605,7 @@ export async function initDashboardPage(ctx = {}) {
 
     if (!slug) {
       if (!opts.quiet) {
-        showFormError('Въведете slug на таг.');
+        showFormError('Въведете идентификатор на таг.');
         newTagSlugInput?.focus();
       }
       return false;
@@ -613,7 +613,7 @@ export async function initDashboardPage(ctx = {}) {
 
     const exists = draftTags.some((t) => t.slug === slug);
     if (exists) {
-      if (!opts.quiet) showFormError('Този slug вече е добавен.');
+      if (!opts.quiet) showFormError('Този идентификатор вече е добавен.');
       return false;
     }
 
@@ -728,7 +728,7 @@ export async function initDashboardPage(ctx = {}) {
       return;
     }
     if (!articleSlug) {
-      showFormError('Въведете slug за URL след рубриката.');
+      showFormError('Въведете адрес след рубриката.');
       slugInput?.focus();
       return;
     }
@@ -813,7 +813,7 @@ export async function initDashboardPage(ctx = {}) {
         const created = await createArticle(accessToken, payload);
         articleId = created?.id;
         if (!articleId) {
-          throw new Error('Статията е създадена, но липсва id за таговете.');
+          throw new Error('Статията е създадена, но липсва идентификатор за таговете.');
         }
         showToast('Статията е създадена.');
       }
@@ -870,7 +870,7 @@ export async function initDashboardPage(ctx = {}) {
     pendingCoverFile = file;
     coverMarkedForRemoval = false;
     clearFormError();
-    setCoverStatus(`Избран файл: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+    setCoverStatus(`Избран файл: ${file.name} (${Math.round(file.size / 1024)} КБ)`);
     showCoverPreview(URL.createObjectURL(file));
   });
 

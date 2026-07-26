@@ -13,7 +13,7 @@ export async function initLoginPage() {
   if (existing?.user) {
     const profile = await getUserProfile(existing.user, existing.access_token);
     const label = profile.fullName || existing.user.email || 'потребител';
-    const roleLabel = profile.role === 'admin' ? 'админ' : 'автор';
+    const roleLabel = profile.role === 'admin' ? 'администратор' : 'автор';
 
     if (sessionNotice) {
       sessionNotice.classList.remove('d-none');

@@ -55,7 +55,7 @@ export function validateCoverImageFile(file) {
     return 'Позволени формати: JPEG, PNG, WebP, GIF.';
   }
   if (file.size > MAX_COVER_BYTES) {
-    return 'Файлът е твърде голям (макс. 5 MB).';
+    return 'Файлът е твърде голям (макс. 5 МБ).';
   }
   return null;
 }
@@ -100,7 +100,7 @@ export async function uploadArticleCover({ file, userId, onProgress }) {
   const { data } = supabase.storage.from(ARTICLE_COVERS_BUCKET).getPublicUrl(path);
   const publicUrl = data?.publicUrl;
   if (!publicUrl) {
-    throw new Error('Качването успя, но публичният URL липсва.');
+    throw new Error('Качването успя, но публичният адрес липсва.');
   }
 
   onProgress?.('Изображението е качено.');
@@ -139,7 +139,7 @@ export function formatStorageError(error) {
   );
 
   if (/payload too large|maximum|size/i.test(message)) {
-    return 'Файлът е твърде голям (макс. 5 MB).';
+    return 'Файлът е твърде голям (макс. 5 МБ).';
   }
   if (/mime|type|not allowed/i.test(message)) {
     return 'Позволени формати: JPEG, PNG, WebP, GIF.';

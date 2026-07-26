@@ -22,7 +22,7 @@ function formatEventDate(isoDate) {
 }
 
 function statusMeta(status) {
-  if (status === 'call_for_papers') return { label: 'Call for Papers', className: 'badge-cat--policy' };
+  if (status === 'call_for_papers') return { label: 'Покана за доклади', className: 'badge-cat--policy' };
   if (status === 'past') return { label: 'Изминало', className: 'badge-cat--inspiration' };
   return { label: 'Предстоящо', className: 'badge-cat--event' };
 }

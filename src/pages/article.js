@@ -52,8 +52,8 @@ function notFoundHtml(slug) {
           <p class="text-secondary mb-4">
             ${
               slug
-                ? `Няма публикувана статия със слуг <code>${escapeHtml(slug)}</code>.`
-                : 'Липсва параметър <code>slug</code> в адреса.'
+                ? `Няма публикувана статия с адрес <code>${escapeHtml(slug)}</code>.`
+                : 'Липсва параметър за адреса в уеб пътя.'
             }
           </p>
           <a href="/index.html" class="btn btn-crescendo">Към началото</a>
@@ -97,7 +97,7 @@ export async function renderArticlePage(_ctx = {}) {
     <article class="container py-5">
       <div class="row justify-content-center">
         <div class="col-lg-8">
-          <nav aria-label="breadcrumb" class="mb-3">
+          <nav aria-label="Навигационна пътека" class="mb-3">
             <ol class="breadcrumb mb-0">
               <li class="breadcrumb-item"><a href="/index.html">Начало</a></li>
               ${
