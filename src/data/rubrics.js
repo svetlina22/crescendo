@@ -36,7 +36,7 @@ export const RUBRICS = [
     page: 'el-sistema',
     title: 'El Sistema',
     icon: 'bi-people',
-    accent: 'practice',
+    accent: 'sistema',
     description:
       'Социални музикални програми и методологии на El Sistema.',
   },
@@ -64,7 +64,7 @@ export function getRubricBySlug(slug) {
   return RUBRICS.find((r) => r.slug === slug) ?? null;
 }
 
-/** @returns {'practice' | 'policy' | 'inspiration' | 'event'} */
+/** @returns {'practice' | 'policy' | 'inspiration' | 'event' | 'sistema'} */
 export function getRubricAccent(slug) {
   return getRubricBySlug(slug)?.accent ?? 'practice';
 }

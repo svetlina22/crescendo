@@ -9,6 +9,7 @@ import {
   slugifyTag,
   updateArticle,
 } from '../services/articles.js';
+import { deleteEvent, fetchPanelEvents } from '../services/events.js';
 import {
   uploadArticleCover,
   uploadLessonResource,
@@ -39,6 +40,29 @@ function formatDate(isoDate) {
     month: 'short',
     year: 'numeric',
   });
+}
+
+function formatEventDateTime(isoDate) {
+  if (!isoDate) return '—';
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString('bg-BG', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function eventStatusBadge(status) {
+  if (status === 'call_for_papers') {
+    return '<span class="badge text-bg-warning text-dark">Покана за доклади</span>';
+  }
+  if (status === 'past') {
+    return '<span class="badge text-bg-secondary">Изминало</span>';
+  }
+  return '<span class="badge text-bg-success">Предстоящо</span>';
 }
 
 function authorLabel(article) {
@@ -226,6 +250,76 @@ function renderArticlesTable(articles = [], isAdmin = false) {
   `;
 }
 
+function renderEventsTable(events = [], isAdmin = false, userId = '') {
+  if (events.length === 0) {
+    return `
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 text-center text-secondary">
+          <i class="bi bi-calendar-event fs-2 d-block mb-2" aria-hidden="true"></i>
+          <p class="mb-0">Няма събития за показване. Добавете ново с бутона „+ Ново събитие“.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  const rows = events
+    .map((eventItem) => {
+      const canEdit = isAdmin || eventItem.author_id === userId;
+      const actionButtons = [];
+
+      if (canEdit) {
+        actionButtons.push(`
+          <a href="/add-event.html?id=${escapeHtml(eventItem.id)}" class="btn btn-sm btn-outline-primary">
+            Редактирай
+          </a>
+        `);
+      }
+
+      if (isAdmin) {
+        actionButtons.push(`
+          <button type="button" class="btn btn-sm btn-outline-danger" data-event-action="delete" data-event-id="${escapeHtml(eventItem.id)}">
+            Изтрий
+          </button>
+        `);
+      }
+
+      return `
+        <tr data-event-id="${escapeHtml(eventItem.id)}">
+          <td>
+            <span class="fw-semibold">${escapeHtml(eventItem.title)}</span>
+            <div class="small text-secondary text-truncate panel-article-summary">${escapeHtml(eventItem.location || '—')}</div>
+          </td>
+          <td class="small text-secondary d-none d-md-table-cell">${formatEventDateTime(eventItem.date)}</td>
+          <td>${eventStatusBadge(eventItem.status)}</td>
+          <td>
+            <div class="d-flex flex-wrap gap-1 justify-content-md-end panel-actions">
+              ${actionButtons.join('') || '<span class="text-secondary">—</span>'}
+            </div>
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  return `
+    <div class="card border-0 shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 panel-articles-table">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Заглавие</th>
+              <th scope="col" class="d-none d-md-table-cell">Дата</th>
+              <th scope="col">Статус</th>
+              <th scope="col" class="text-md-end">Действия</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
 function toastHtml() {
   return `
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
@@ -394,11 +488,13 @@ export async function renderDashboardPage(ctx = {}) {
 
   let articles = [];
   let rubrics = [];
+  let events = [];
 
   if (userId && accessToken) {
-    [articles, rubrics] = await Promise.all([
+    [articles, rubrics, events] = await Promise.all([
       fetchPanelArticles({ userId, accessToken, isAdmin }),
       fetchRubrics(accessToken),
+      fetchPanelEvents({ userId, accessToken, isAdmin }),
     ]);
   }
 
@@ -429,6 +525,11 @@ export async function renderDashboardPage(ctx = {}) {
 
       <div id="statsWrap">${renderStats(articles, isAdmin)}</div>
       <div id="articlesWrap">${renderArticlesTable(articles, isAdmin)}</div>
+
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-5 mb-3">
+        <h2 class="h5 mb-0">Събития</h2>
+      </div>
+      <div id="eventsWrap">${renderEventsTable(events, isAdmin, userId)}</div>
     </section>
 
     ${modalHtml(isAdmin, rubrics)}
@@ -454,6 +555,7 @@ export async function initDashboardPage(ctx = {}) {
 
   let articles = await fetchPanelArticles({ userId, accessToken, isAdmin });
   let rubrics = await fetchRubrics(accessToken);
+  let events = await fetchPanelEvents({ userId, accessToken, isAdmin });
 
   const modalEl = document.getElementById('articleModal');
   const form = document.getElementById('articleForm');
@@ -462,6 +564,7 @@ export async function initDashboardPage(ctx = {}) {
   const logoutBtn = document.getElementById('logoutBtn');
   const newArticleBtn = document.getElementById('newArticleBtn');
   const articlesWrap = document.getElementById('articlesWrap');
+  const eventsWrap = document.getElementById('eventsWrap');
   const statsWrap = document.getElementById('statsWrap');
   const toastEl = document.getElementById('panelToast');
   const toastBody = document.getElementById('panelToastBody');
@@ -609,6 +712,15 @@ export async function initDashboardPage(ctx = {}) {
   async function reloadArticles() {
     articles = await fetchPanelArticles({ userId, accessToken, isAdmin });
     refreshList();
+  }
+
+  function refreshEventsList() {
+    if (eventsWrap) eventsWrap.innerHTML = renderEventsTable(events, isAdmin, userId);
+  }
+
+  async function reloadEvents() {
+    events = await fetchPanelEvents({ userId, accessToken, isAdmin });
+    refreshEventsList();
   }
 
   function showFormError(message) {
@@ -1015,6 +1127,33 @@ export async function initDashboardPage(ctx = {}) {
       console.error(action, error);
       showToast(String(error?.message || error), 'danger');
       btn.disabled = false;
+    }
+  });
+
+  eventsWrap?.addEventListener('click', async (event) => {
+    const btn = event.target.closest('[data-event-action]');
+    if (!btn) return;
+
+    const action = btn.dataset.eventAction;
+    const id = btn.dataset.eventId;
+    const eventItem = events.find((e) => e.id === id);
+    if (!eventItem) return;
+
+    if (action === 'delete') {
+      const ok = window.confirm(
+        `Изтриване на „${eventItem.title}“? Това действие е необратимо.`,
+      );
+      if (!ok) return;
+      btn.disabled = true;
+      try {
+        await deleteEvent(accessToken, id);
+        showToast('Събитието е изтрито.');
+        await reloadEvents();
+      } catch (error) {
+        console.error(action, error);
+        showToast(String(error?.message || error), 'danger');
+        btn.disabled = false;
+      }
     }
   });
 

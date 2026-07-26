@@ -1,8 +1,11 @@
-import { isSupabaseConfigured, supabaseRest } from '../config/supabase.js';
+import { isSupabaseConfigured, supabaseRest, supabaseRestAuth } from '../config/supabase.js';
 import { getSupabase } from './auth.js';
 
 const EVENT_SIDEBAR_SELECT =
   'id,title,date,location,event_type,registration_link,image_url,status';
+
+const EVENT_PANEL_SELECT =
+  'id,title,date,location,event_type,registration_link,image_url,status,description,author_id,created_at';
 
 /**
  * Upcoming / CFP events ordered by date ascending.
@@ -114,4 +117,77 @@ export async function createEvent(payload) {
     console.error('createEvent', error);
     return { data: null, error };
   }
+}
+
+/**
+ * Author: own events only. Admin: all events.
+ * @param {{ userId: string, accessToken: string, isAdmin?: boolean }} opts
+ * @returns {Promise<Array>}
+ */
+export async function fetchPanelEvents({ userId, accessToken, isAdmin = false }) {
+  if (!isSupabaseConfigured() || !accessToken || !userId) return [];
+
+  try {
+    const params = new URLSearchParams({
+      select: EVENT_PANEL_SELECT,
+      order: 'date.desc',
+    });
+
+    if (!isAdmin) {
+      params.set('author_id', `eq.${userId}`);
+    }
+
+    const data = await supabaseRestAuth(`/rest/v1/events?${params}`, accessToken);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('fetchPanelEvents', error);
+    return [];
+  }
+}
+
+/**
+ * @param {string} eventId
+ * @returns {Promise<object | null>}
+ */
+export async function fetchEventById(eventId) {
+  if (!isSupabaseConfigured() || !eventId) return null;
+
+  try {
+    const params = new URLSearchParams({
+      select: '*',
+      id: `eq.${eventId}`,
+      limit: '1',
+    });
+    const data = await supabaseRest(`/rest/v1/events?${params}`);
+    return Array.isArray(data) && data.length > 0 ? data[0] : null;
+  } catch (error) {
+    console.error('fetchEventById', error);
+    return null;
+  }
+}
+
+/**
+ * @param {string} accessToken
+ * @param {string} eventId
+ * @param {object} payload
+ */
+export async function updateEvent(accessToken, eventId, payload) {
+  const data = await supabaseRestAuth(
+    `/rest/v1/events?id=eq.${encodeURIComponent(eventId)}`,
+    accessToken,
+    { method: 'PATCH', body: payload, prefer: 'return=minimal', timeoutMs: 25000 },
+  );
+  return Array.isArray(data) ? data[0] : data;
+}
+
+/**
+ * @param {string} accessToken
+ * @param {string} eventId
+ */
+export async function deleteEvent(accessToken, eventId) {
+  await supabaseRestAuth(
+    `/rest/v1/events?id=eq.${encodeURIComponent(eventId)}`,
+    accessToken,
+    { method: 'DELETE', prefer: 'return=minimal', timeoutMs: 25000 },
+  );
 }

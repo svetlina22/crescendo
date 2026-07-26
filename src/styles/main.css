@@ -24,6 +24,7 @@
   --badge-policy: #1e1b4b;
   --badge-inspiration: #0d9488;
   --badge-event: #e11d48;
+  --badge-sistema: #4f46e5;
 
   /* Вътрешни alias-и (компоненти) */
   --cr-text: var(--text-main);
@@ -52,6 +53,7 @@
   --cr-policy: var(--badge-policy);
   --cr-inspiration: var(--badge-inspiration);
   --cr-event: var(--badge-event);
+  --cr-sistema: var(--badge-sistema);
 
   --cr-gradient-brand: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 52%, var(--accent) 100%);
   --cr-gradient-hero: linear-gradient(120deg, rgba(30, 27, 75, 0.06) 0%, rgba(79, 70, 229, 0.06) 45%, rgba(245, 158, 11, 0.05) 100%);
@@ -577,6 +579,7 @@ h1, h2, h3, h4, h5, h6,
 .rubric-tile--inspiration .rubric-tile__icon { background: var(--badge-inspiration); color: #fff; }
 .rubric-tile--event .rubric-tile__icon { background: var(--badge-event); color: #fff; }
 .rubric-tile--practice .rubric-tile__icon { background: var(--badge-practice); color: var(--primary); }
+.rubric-tile--sistema .rubric-tile__icon { background: var(--badge-sistema); color: #fff; }
 
 .rubric-tile__title {
   font-family: var(--font-display);
@@ -848,6 +851,7 @@ h1, h2, h3, h4, h5, h6,
 .badge-cat--policy { background: var(--badge-policy); color: #fff; }
 .badge-cat--inspiration { background: var(--badge-inspiration); color: #fff; }
 .badge-cat--event { background: var(--badge-event); color: #fff; }
+.badge-cat--sistema { background: var(--badge-sistema); color: #fff; }
 
 .badge-tag {
   display: inline-block;

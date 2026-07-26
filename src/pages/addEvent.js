@@ -1,4 +1,4 @@
-import { createEvent } from '../services/events.js';
+import { createEvent, fetchEventById, updateEvent } from '../services/events.js';
 
 /**
  * Convert datetime-local value (local wall time) to ISO timestamptz string.
@@ -11,12 +11,24 @@ function localDatetimeToIso(value) {
   return date.toISOString();
 }
 
+/**
+ * Convert ISO timestamptz → datetime-local value (local wall time).
+ * @param {string} isoDate
+ */
+function isoToLocalDatetime(isoDate) {
+  if (!isoDate) return '';
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export async function renderAddEventPage() {
   return `
     <section class="container py-4 py-md-5" style="max-width: 40rem">
       <div class="mb-4">
         <p class="text-uppercase small fw-semibold text-secondary mb-2">Администратор</p>
-        <h1 class="h2 mb-2">Добавяне на събитие</h1>
+        <h1 class="h2 mb-2" id="addEventTitle">Добавяне на събитие</h1>
         <p class="text-secondary mb-0">
           Попълнете формата, за да добавите ново събитие в календара.
         </p>
@@ -25,6 +37,7 @@ export async function renderAddEventPage() {
       <div id="addEventAlert" class="alert d-none" role="alert"></div>
 
       <form id="addEventForm" class="needs-validation" novalidate>
+        <input type="hidden" id="eventId" name="id" value="" />
         <div class="mb-3">
           <label for="eventTitle" class="form-label">Заглавие на събитието</label>
           <input
@@ -117,9 +130,15 @@ export async function initAddEventPage(ctx = {}) {
   const form = document.getElementById('addEventForm');
   const alertEl = document.getElementById('addEventAlert');
   const submitBtn = document.getElementById('addEventSubmit');
+  const titleEl = document.getElementById('addEventTitle');
+  const idInput = document.getElementById('eventId');
   if (!form) return;
 
   const userId = ctx.user?.id ?? null;
+  const isAdmin = ctx.role === 'admin';
+  const accessToken = ctx.accessToken;
+
+  const eventId = new URLSearchParams(window.location.search).get('id');
 
   /**
    * @param {string} message
@@ -131,6 +150,43 @@ export async function initAddEventPage(ctx = {}) {
     alertEl.textContent = message;
     alertEl.classList.remove('d-none');
     alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function setSubmitLabel(isEditing) {
+    if (!submitBtn) return;
+    submitBtn.innerHTML = isEditing
+      ? '<i class="bi bi-check-lg me-1" aria-hidden="true"></i>Запази промените'
+      : '<i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Добави събитие';
+  }
+
+  if (eventId) {
+    if (idInput) idInput.value = eventId;
+    if (titleEl) titleEl.textContent = 'Редакция на събитие';
+    setSubmitLabel(true);
+
+    const existing = await fetchEventById(eventId);
+    if (!existing) {
+      showAlert('Събитието не бе намерено.', 'danger');
+    } else if (!isAdmin && existing.author_id !== userId) {
+      showAlert('Нямате права да редактирате това събитие.', 'danger');
+      form.querySelectorAll('input, select, textarea, button[type="submit"]').forEach((el) => {
+        el.disabled = true;
+      });
+    } else {
+      /** @type {HTMLInputElement} */ (form.elements.namedItem('title')).value =
+        existing.title ?? '';
+      /** @type {HTMLInputElement} */ (form.elements.namedItem('date')).value = isoToLocalDatetime(
+        existing.date,
+      );
+      /** @type {HTMLInputElement} */ (form.elements.namedItem('location')).value =
+        existing.location ?? '';
+      /** @type {HTMLSelectElement} */ (form.elements.namedItem('status')).value =
+        existing.status ?? 'upcoming';
+      /** @type {HTMLInputElement} */ (form.elements.namedItem('image_url')).value =
+        existing.image_url ?? '';
+      /** @type {HTMLTextAreaElement} */ (form.elements.namedItem('description')).value =
+        existing.description ?? '';
+    }
   }
 
   form.addEventListener('submit', async (event) => {
@@ -158,36 +214,51 @@ export async function initAddEventPage(ctx = {}) {
       return;
     }
 
+    const isEditing = Boolean(idInput?.value);
+
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML =
-        '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Запис…';
+      submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>${isEditing ? 'Запазване…' : 'Запис…'}`;
     }
 
-    const { error } = await createEvent({
+    const payload = {
       title,
       date: dateIso,
       location,
       description,
       image_url: imageUrl || null,
       status: /** @type {'upcoming' | 'past' | 'call_for_papers'} */ (status),
-      author_id: userId,
-    });
+    };
+
+    let error = null;
+    if (isEditing) {
+      try {
+        await updateEvent(accessToken, idInput.value, payload);
+      } catch (err) {
+        error = err;
+      }
+    } else {
+      const result = await createEvent({ ...payload, author_id: userId });
+      error = result.error;
+    }
 
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.innerHTML =
-        '<i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Добави събитие';
+      setSubmitLabel(isEditing);
     }
 
     if (error) {
-      console.error('addEvent', error);
+      console.error('saveEvent', error);
       showAlert(error.message || 'Записът не бе успешен.', 'danger');
       return;
     }
 
-    form.reset();
-    form.classList.remove('was-validated');
-    showAlert('Събитието е добавено успешно!', 'success');
+    if (isEditing) {
+      showAlert('Събитието е обновено успешно!', 'success');
+    } else {
+      form.reset();
+      form.classList.remove('was-validated');
+      showAlert('Събитието е добавено успешно!', 'success');
+    }
   });
 }
