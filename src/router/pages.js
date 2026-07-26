@@ -42,7 +42,7 @@ export const pages = {
     },
   },
   'el-sistema': {
-    title: 'Ел Система',
+    title: 'El Sistema',
     path: '/el-sistema.html',
     htmlFirst: true,
     load: async () => {

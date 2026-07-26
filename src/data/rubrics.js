@@ -34,7 +34,7 @@ export const RUBRICS = [
     slug: 'el-sistema',
     path: '/el-sistema.html',
     page: 'el-sistema',
-    title: 'Ел Система',
+    title: 'El Sistema',
     icon: 'bi-people',
     accent: 'practice',
     description:

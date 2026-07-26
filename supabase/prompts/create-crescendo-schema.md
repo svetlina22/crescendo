@@ -45,7 +45,7 @@
   1. Ползи / `benefits`
   2. Политики / `policies`
   3. Практики / `practices`
-  4. Ел Система / `el-sistema`
+  4. El Sistema / `el-sistema`
   5. Резонанс / `resonance`
 
 ### `articles`
