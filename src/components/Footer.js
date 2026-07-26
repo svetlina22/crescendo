@@ -46,7 +46,7 @@ export function renderFooter(activePath = '') {
                 <a
                   href="/about.html"
                   class="${aboutActive ? 'fw-semibold' : ''}"
-                  ${aboutActive ? 'aria-current="page" style="color:var(--cr-coral)"' : ''}
+                  ${aboutActive ? 'aria-current="page" style="color:var(--sunshine)"' : ''}
                 >За нас</a>
               </li>
             </ul>
@@ -59,7 +59,7 @@ export function renderFooter(activePath = '') {
             </p>
           </div>
         </div>
-        <hr class="my-4" style="border-color: var(--cr-peach); opacity: 1" />
+        <hr class="my-4" />
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
           <p class="small mb-0">
             &copy; ${year} Crescendo. Всички права запазени.
