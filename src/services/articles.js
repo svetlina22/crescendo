@@ -76,9 +76,75 @@ export async function fetchPublishedArticles(limit = 8) {
 }
 
 /**
+ * Strip characters that break PostgREST filter syntax / widen LIKE too much.
+ * @param {string} raw
+ */
+function sanitizeSearchTerm(raw) {
+  return String(raw ?? '')
+    .trim()
+    .replace(/[%*(),.\\:]/g, ' ')
+    .replace(/"/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+}
+
+/**
+ * PostgREST ilike value (`*` → SQL `%`). Quote when needed.
+ * @param {string} term
+ */
+function ilikePattern(term) {
+  const pattern = `*${term}*`;
+  if (/[\s]/.test(term)) return `"${pattern}"`;
+  return pattern;
+}
+
+/**
+ * @param {string} columnsCsv e.g. "title,summary,content"
+ * @param {string} term
+ */
+function orIlike(columnsCsv, term) {
+  const pattern = ilikePattern(term);
+  return `(${columnsCsv
+    .split(',')
+    .map((col) => `${col.trim()}.ilike.${pattern}`)
+    .join(',')})`;
+}
+
+/**
+ * @param {Array} lists
+ * @param {number} limit
+ */
+function mergeArticlesById(lists, limit) {
+  /** @type {Map<string, object>} */
+  const byId = new Map();
+  for (const list of lists) {
+    for (const article of list) {
+      if (article?.id) byId.set(article.id, article);
+    }
+  }
+  return Array.from(byId.values())
+    .sort((a, b) => {
+      const ta = a.published_at ? new Date(a.published_at).getTime() : 0;
+      const tb = b.published_at ? new Date(b.published_at).getTime() : 0;
+      return tb - ta;
+    })
+    .slice(0, limit);
+}
+
+const LIST_SELECT_TAGS_INNER =
+  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)';
+
+const LIST_SELECT_RUBRICS_INNER =
+  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics!inner(title,slug),profiles(full_name,academic_title),tags(name,slug)';
+
+const LIST_SELECT_TAGS_AND_RUBRICS_INNER =
+  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics!inner(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)';
+
+/**
  * Public article search / tag filter.
- * Tags live in M2M (`tags` ↔ `article_tags`), so filtering uses an inner embed
- * (PostgREST equivalent of array `.contains` on a tags column).
+ * Free-text `q` uses case-insensitive partial match (ilike) on title, summary,
+ * content, tags (name/slug), and rubrics/categories (title/slug).
  *
  * @param {{ limit?: number, tag?: string, q?: string }} [opts]
  * @returns {Promise<Array>}
@@ -87,32 +153,72 @@ export async function searchPublishedArticles({ limit = 24, tag = '', q = '' } =
   if (!isSupabaseConfigured()) return [];
 
   const tagSlug = String(tag ?? '').trim();
-  const query = String(q ?? '').trim();
+  const query = sanitizeSearchTerm(q);
 
   try {
-    const params = new URLSearchParams({
+    if (!query) {
+      const params = new URLSearchParams({
+        status: 'eq.published',
+        order: 'published_at.desc',
+        limit: String(limit),
+      });
+
+      if (tagSlug) {
+        params.set('select', LIST_SELECT_TAGS_INNER);
+        params.set('tags.slug', `eq.${tagSlug}`);
+      } else {
+        params.set('select', PUBLIC_ARTICLE_LIST_SELECT);
+      }
+
+      const data = await supabaseRest(`/rest/v1/articles?${params}`);
+      return Array.isArray(data) ? data : [];
+    }
+
+    // PostgREST cannot OR local columns with related-table filters in one
+    // reliable join, so we run parallel queries and merge by id.
+    const fetchLimit = String(Math.min(Math.max(limit * 2, limit), 80));
+
+    const textParams = new URLSearchParams({
       status: 'eq.published',
       order: 'published_at.desc',
-      limit: String(limit),
+      limit: fetchLimit,
+      select: tagSlug ? LIST_SELECT_TAGS_INNER : PUBLIC_ARTICLE_LIST_SELECT,
+      or: orIlike('title,summary,content', query),
     });
+    if (tagSlug) textParams.set('tags.slug', `eq.${tagSlug}`);
 
-    if (tagSlug) {
-      params.set(
-        'select',
-        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)',
-      );
-      params.set('tags.slug', `eq.${tagSlug}`);
-    } else {
-      params.set('select', PUBLIC_ARTICLE_LIST_SELECT);
-    }
+    const tagParams = new URLSearchParams({
+      status: 'eq.published',
+      order: 'published_at.desc',
+      limit: fetchLimit,
+      select: LIST_SELECT_TAGS_INNER,
+    });
+    tagParams.set('tags.or', orIlike('name,slug', query));
+    if (tagSlug) tagParams.set('tags.slug', `eq.${tagSlug}`);
 
-    if (query) {
-      // Title / summary text search
-      params.set('or', `(title.ilike.*${query}*,summary.ilike.*${query}*)`);
-    }
+    const rubricParams = new URLSearchParams({
+      status: 'eq.published',
+      order: 'published_at.desc',
+      limit: fetchLimit,
+      select: tagSlug ? LIST_SELECT_TAGS_AND_RUBRICS_INNER : LIST_SELECT_RUBRICS_INNER,
+    });
+    rubricParams.set('rubrics.or', orIlike('title,slug', query));
+    if (tagSlug) rubricParams.set('tags.slug', `eq.${tagSlug}`);
 
-    const data = await supabaseRest(`/rest/v1/articles?${params}`);
-    return Array.isArray(data) ? data : [];
+    const [textHits, tagHits, rubricHits] = await Promise.all([
+      supabaseRest(`/rest/v1/articles?${textParams}`),
+      supabaseRest(`/rest/v1/articles?${tagParams}`),
+      supabaseRest(`/rest/v1/articles?${rubricParams}`),
+    ]);
+
+    return mergeArticlesById(
+      [
+        Array.isArray(textHits) ? textHits : [],
+        Array.isArray(tagHits) ? tagHits : [],
+        Array.isArray(rubricHits) ? rubricHits : [],
+      ],
+      limit,
+    );
   } catch (error) {
     console.error('searchPublishedArticles', error);
     return [];
