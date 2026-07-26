@@ -10,6 +10,10 @@ import {
   slugifyTag,
   updateArticle,
 } from '../services/articles.js';
+import {
+  uploadArticleCover,
+  validateCoverImageFile,
+} from '../services/storage.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -301,6 +305,35 @@ function modalHtml(isAdmin, rubrics = []) {
               <textarea class="form-control" id="articleSummary" name="summary" rows="3"></textarea>
             </div>
             <div class="mb-3">
+              <label for="articleCoverInput" class="form-label">Водещо изображение</label>
+              <input
+                type="file"
+                class="form-control"
+                id="articleCoverInput"
+                name="cover_image"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+              />
+              <div class="form-text">
+                JPEG, PNG, WebP или GIF · макс. 5&nbsp;MB. Записва се публично в Storage.
+              </div>
+              <input type="hidden" id="articleCoverUrl" name="cover_image_url" value="" />
+              <div id="articleCoverPreviewWrap" class="mt-2 d-none">
+                <img
+                  id="articleCoverPreview"
+                  src=""
+                  alt="Преглед на корицата"
+                  class="rounded border"
+                  style="max-height: 160px; max-width: 100%; object-fit: cover"
+                />
+                <div class="mt-2">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="articleCoverClearBtn">
+                    Премахни изображението
+                  </button>
+                </div>
+              </div>
+              <div id="articleCoverStatus" class="small text-secondary mt-2 d-none" role="status"></div>
+            </div>
+            <div class="mb-3">
               <label for="articleContent" class="form-label">Основен текст <span class="text-danger">*</span></label>
               <textarea class="form-control" id="articleContent" name="content" rows="8"></textarea>
             </div>
@@ -452,12 +485,56 @@ export async function initDashboardPage(ctx = {}) {
   const draftTagsWrap = document.getElementById('draftTagsWrap');
   const newTagSlugInput = document.getElementById('newTagSlug');
   const addTagBtn = document.getElementById('addTagBtn');
+  const coverInput = document.getElementById('articleCoverInput');
+  const coverUrlInput = document.getElementById('articleCoverUrl');
+  const coverPreviewWrap = document.getElementById('articleCoverPreviewWrap');
+  const coverPreview = document.getElementById('articleCoverPreview');
+  const coverClearBtn = document.getElementById('articleCoverClearBtn');
+  const coverStatus = document.getElementById('articleCoverStatus');
 
   if (!modalEl || !form || !articlesWrap || !idInput) return;
 
   const modal = Modal.getOrCreateInstance(modalEl);
   const toast = toastEl ? Toast.getOrCreateInstance(toastEl, { delay: 3500 }) : null;
   let articleSlugTouched = false;
+  /** @type {File | null} */
+  let pendingCoverFile = null;
+  let coverMarkedForRemoval = false;
+
+  function setCoverStatus(message, isError = false) {
+    if (!coverStatus) return;
+    if (!message) {
+      coverStatus.classList.add('d-none');
+      coverStatus.textContent = '';
+      return;
+    }
+    coverStatus.textContent = message;
+    coverStatus.classList.remove('d-none', 'text-secondary', 'text-danger', 'text-success');
+    coverStatus.classList.add(isError ? 'text-danger' : 'text-secondary');
+  }
+
+  /**
+   * @param {string | null | undefined} url
+   */
+  function showCoverPreview(url) {
+    if (!coverPreviewWrap || !coverPreview) return;
+    if (url) {
+      coverPreview.src = url;
+      coverPreviewWrap.classList.remove('d-none');
+    } else {
+      coverPreview.removeAttribute('src');
+      coverPreviewWrap.classList.add('d-none');
+    }
+  }
+
+  function resetCoverFields() {
+    pendingCoverFile = null;
+    coverMarkedForRemoval = false;
+    if (coverInput) coverInput.value = '';
+    if (coverUrlInput) coverUrlInput.value = '';
+    showCoverPreview(null);
+    setCoverStatus('');
+  }
 
   function showToast(message, variant = 'success') {
     if (!toastEl || !toastBody || !toast) return;
@@ -559,6 +636,7 @@ export async function initDashboardPage(ctx = {}) {
     idInput.value = '';
     draftTags = [];
     articleSlugTouched = false;
+    resetCoverFields();
     renderDraftTags();
     clearTagInputs();
     if (slugInput) slugInput.value = '';
@@ -586,6 +664,13 @@ export async function initDashboardPage(ctx = {}) {
     if (summaryInput) summaryInput.value = article.summary ?? '';
     if (contentInput) contentInput.value = article.content ?? '';
     if (slugInput) slugInput.value = article.slug ?? '';
+    pendingCoverFile = null;
+    coverMarkedForRemoval = false;
+    if (coverInput) coverInput.value = '';
+    const existingCover = article.cover_image_url?.trim() || '';
+    if (coverUrlInput) coverUrlInput.value = existingCover;
+    showCoverPreview(existingCover || null);
+    setCoverStatus(existingCover ? 'Текущо водещо изображение.' : '');
     ensureRubrics().then((list) => {
       if (rubricSelect) {
         rubricSelect.innerHTML = rubricOptionsHtml(
@@ -679,6 +764,33 @@ export async function initDashboardPage(ctx = {}) {
     }
 
     try {
+      if (pendingCoverFile) {
+        setCoverStatus('Качване на изображение…');
+        if (saveBtn) {
+          saveBtn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Качване…';
+        }
+        const { publicUrl } = await uploadArticleCover({
+          file: pendingCoverFile,
+          userId,
+          onProgress: (label) => setCoverStatus(label),
+        });
+        payload.cover_image_url = publicUrl;
+        if (coverUrlInput) coverUrlInput.value = publicUrl;
+        setCoverStatus('Изображението е качено.', false);
+        coverStatus?.classList.remove('text-secondary');
+        coverStatus?.classList.add('text-success');
+      } else if (coverMarkedForRemoval) {
+        payload.cover_image_url = null;
+      } else if (coverUrlInput?.value.trim()) {
+        payload.cover_image_url = coverUrlInput.value.trim();
+      }
+
+      if (saveBtn) {
+        saveBtn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Запазване…';
+      }
+
       let articleId = id;
 
       if (id) {
@@ -714,6 +826,7 @@ export async function initDashboardPage(ctx = {}) {
     } catch (error) {
       console.error('save article', error);
       showFormError(String(error?.message || error));
+      setCoverStatus(String(error?.message || error), true);
     } finally {
       isSaving = false;
       if (saveBtn) {
@@ -736,6 +849,38 @@ export async function initDashboardPage(ctx = {}) {
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     saveArticle();
+  });
+
+  coverInput?.addEventListener('change', () => {
+    const file = coverInput.files?.[0] ?? null;
+    if (!file) {
+      pendingCoverFile = null;
+      return;
+    }
+
+    const error = validateCoverImageFile(file);
+    if (error) {
+      pendingCoverFile = null;
+      coverInput.value = '';
+      setCoverStatus(error, true);
+      showFormError(error);
+      return;
+    }
+
+    pendingCoverFile = file;
+    coverMarkedForRemoval = false;
+    clearFormError();
+    setCoverStatus(`Избран файл: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+    showCoverPreview(URL.createObjectURL(file));
+  });
+
+  coverClearBtn?.addEventListener('click', () => {
+    pendingCoverFile = null;
+    coverMarkedForRemoval = true;
+    if (coverInput) coverInput.value = '';
+    if (coverUrlInput) coverUrlInput.value = '';
+    showCoverPreview(null);
+    setCoverStatus('Изображението ще бъде премахнато при запазване.');
   });
 
   rubricSelect?.addEventListener('change', () => {

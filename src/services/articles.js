@@ -7,7 +7,7 @@ const PUBLIC_ARTICLE_DETAIL_SELECT =
   'id,title,slug,summary,content,reading_time_min,published_at,cover_image_url,rubrics(id,title,slug),profiles(full_name,academic_title),tags(name,slug)';
 
 const ARTICLE_SELECT =
-  'id,title,slug,summary,content,status,published_at,created_at,updated_at,author_id,rubric_id,rubrics(id,title,slug),profiles(full_name,academic_title,role),tags(id,name,slug)';
+  'id,title,slug,summary,content,cover_image_url,status,published_at,created_at,updated_at,author_id,rubric_id,rubrics(id,title,slug),profiles(full_name,academic_title,role),tags(id,name,slug)';
 
 /**
  * @param {string} title
