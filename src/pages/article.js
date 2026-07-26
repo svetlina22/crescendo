@@ -1,5 +1,5 @@
 import { fetchPublishedArticleBySlug, normalizeTags } from '../services/articles.js';
-import { RUBRICS, getRubricAccent } from '../data/rubrics.js';
+import { RUBRICS } from '../data/rubrics.js';
 import { getArticleImage } from '../data/visuals.js';
 import { renderTagBadges } from '../components/TagBadges.js';
 import { applyPageSeo, setArticleJsonLd } from '../utils/seo.js';
@@ -126,12 +126,6 @@ export async function renderArticlePage(_ctx = {}) {
               <li class="breadcrumb-item active" aria-current="page">Статия</li>
             </ol>
           </nav>
-
-          ${
-            rubric?.title
-              ? `<a href="${backHref}" class="badge-cat badge-cat--${getRubricAccent(rubric.slug)} mb-3">${escapeHtml(rubric.title)}</a>`
-              : ''
-          }
 
           <h1 class="display-6 mb-3">${escapeHtml(article.title)}</h1>
 
