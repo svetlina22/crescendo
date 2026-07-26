@@ -1,6 +1,6 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 :root {
   /* 1. Основни цветове за марката — ярки, топли, жизнени */
@@ -73,8 +73,8 @@
   --cr-card-shadow: 0 2px 8px -2px rgba(46, 16, 101, 0.1), 0 10px 32px -12px rgba(46, 16, 101, 0.14);
   --cr-card-shadow-hover: 0 20px 48px -14px rgba(46, 16, 101, 0.2), 0 12px 28px -10px rgba(255, 122, 69, 0.22);
 
-  --font-display: 'Syne', system-ui, sans-serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Manrope', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
   --radius: 24px;
   --radius-sm: 16px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -896,10 +896,6 @@ h1, h2, h3, h4, h5, h6,
 
   .article-featured__body {
     padding: 1.15rem 1.2rem 1.35rem;
-  }
-
-  .article-featured__body .h3 {
-    font-size: 1.2rem;
   }
 }
 

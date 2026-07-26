@@ -42,7 +42,7 @@ function renderFeatured(article) {
       <div class="article-featured__media" style="background-image:url('${img}')"></div>
       <div class="article-featured__body">
         ${rubric?.title ? `<span class="badge-cat badge-cat--${accent} mb-2">${escapeHtml(rubric.title)}</span>` : ''}
-        <h3 class="h3 mb-2">${escapeHtml(article.title)}</h3>
+        <h3 class="article-card__title mb-2">${escapeHtml(article.title)}</h3>
         ${article.summary ? `<p class="text-secondary mb-3">${escapeHtml(article.summary)}</p>` : ''}
         <p class="article-card__meta mb-0">
           ${authorLabel ? `${escapeHtml(authorLabel)} · ` : ''}
