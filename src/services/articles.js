@@ -1,13 +1,13 @@
 import { isSupabaseConfigured, supabaseRest, supabaseRestAuth } from '../config/supabase.js';
 
 const PUBLIC_ARTICLE_LIST_SELECT =
-  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,rubrics(title,slug),profiles(full_name,academic_title),tags(name,slug)';
+  'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics(title,slug),profiles(full_name,academic_title),tags(name,slug)';
 
 const PUBLIC_ARTICLE_DETAIL_SELECT =
-  'id,title,slug,summary,content,reading_time_min,published_at,cover_image_url,rubrics(id,title,slug),profiles(full_name,academic_title),tags(name,slug)';
+  'id,title,slug,summary,content,reading_time_min,published_at,cover_image_url,file_url,rubrics(id,title,slug),profiles(full_name,academic_title),tags(name,slug)';
 
 const ARTICLE_SELECT =
-  'id,title,slug,summary,content,cover_image_url,status,published_at,created_at,updated_at,author_id,rubric_id,rubrics(id,title,slug),profiles(full_name,academic_title,role),tags(id,name,slug)';
+  'id,title,slug,summary,content,cover_image_url,file_url,status,published_at,created_at,updated_at,author_id,rubric_id,rubrics(id,title,slug),profiles(full_name,academic_title,role),tags(id,name,slug)';
 
 /**
  * @param {string} title
@@ -99,7 +99,7 @@ export async function searchPublishedArticles({ limit = 24, tag = '', q = '' } =
     if (tagSlug) {
       params.set(
         'select',
-        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,rubrics(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)',
+        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics(title,slug),profiles(full_name,academic_title),tags!inner(name,slug)',
       );
       params.set('tags.slug', `eq.${tagSlug}`);
     } else {
@@ -210,7 +210,7 @@ export async function fetchPublishedArticlesByRubric(rubricSlug, limit = 20) {
   try {
     const params = new URLSearchParams({
       select:
-        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,rubrics!inner(title,slug),profiles(full_name,academic_title),tags(name,slug)',
+        'id,title,slug,summary,reading_time_min,published_at,cover_image_url,file_url,rubrics!inner(title,slug),profiles(full_name,academic_title),tags(name,slug)',
       status: 'eq.published',
       order: 'published_at.desc',
       limit: String(limit),

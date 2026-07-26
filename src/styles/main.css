@@ -1073,6 +1073,10 @@ h1, h2, h3, h4, h5, h6,
   box-shadow: var(--cr-card-shadow-hover);
 }
 
+.resource-download-btn {
+  letter-spacing: 0.01em;
+}
+
 #page .container.py-5.text-center.text-secondary {
   min-height: 40vh;
   display: flex;

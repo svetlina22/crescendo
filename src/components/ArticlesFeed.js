@@ -48,6 +48,16 @@ function renderFeatured(article) {
           ${authorLabel ? `${escapeHtml(authorLabel)} · ` : ''}
           ${article.published_at ? escapeHtml(formatPublishedAt(article.published_at)) : ''}
         </p>
+        ${
+          article.file_url
+            ? `<span class="d-inline-block mt-3">
+                <span class="badge text-bg-warning text-dark">
+                  <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>
+                  С учебен ресурс
+                </span>
+              </span>`
+            : ''
+        }
       </div>
     </a>`;
 }
@@ -80,6 +90,22 @@ function renderCard(article, showRubricBadge) {
             ${article.reading_time_min ? ` · ${article.reading_time_min} мин` : ''}
           </p>
           ${tagsHtml}
+          ${
+            article.file_url
+              ? `<div class="mt-3">
+                  <a
+                    href="${escapeHtml(article.file_url)}"
+                    class="btn btn-sm btn-crescendo resource-download-btn"
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <i class="bi bi-download me-1" aria-hidden="true"></i>
+                    Изтегли учебния ресурс (PDF)
+                  </a>
+                </div>`
+              : ''
+          }
         </div>
       </article>
     </div>`;

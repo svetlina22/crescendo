@@ -12,7 +12,9 @@ import {
 } from '../services/articles.js';
 import {
   uploadArticleCover,
+  uploadLessonResource,
   validateCoverImageFile,
+  validateLessonResourceFile,
 } from '../services/storage.js';
 
 function escapeHtml(value) {
@@ -334,6 +336,27 @@ function modalHtml(isAdmin, rubrics = []) {
               <div id="articleCoverStatus" class="small text-secondary mt-2 d-none" role="status"></div>
             </div>
             <div class="mb-3">
+              <label for="resource-pdf-input" class="form-label">Учебен ресурс (PDF / ZIP)</label>
+              <input
+                type="file"
+                class="form-control"
+                id="resource-pdf-input"
+                name="resource_pdf"
+                accept=".pdf,.zip,application/pdf,application/zip"
+              />
+              <div class="form-text">
+                Незадължително · PDF или ZIP · макс. 20&nbsp;МБ. Подходящо за ноти, работни листове и практики.
+              </div>
+              <input type="hidden" id="articleFileUrl" name="file_url" value="" />
+              <div id="articleFileCurrent" class="small mt-2 d-none">
+                <a id="articleFileLink" href="#" target="_blank" rel="noopener noreferrer">Текущ файл</a>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="articleFileClearBtn">
+                  Премахни файла
+                </button>
+              </div>
+              <div id="articleFileStatus" class="small text-secondary mt-2 d-none" role="status"></div>
+            </div>
+            <div class="mb-3">
               <label for="articleContent" class="form-label">Основен текст <span class="text-danger">*</span></label>
               <textarea class="form-control" id="articleContent" name="content" rows="8"></textarea>
             </div>
@@ -491,6 +514,12 @@ export async function initDashboardPage(ctx = {}) {
   const coverPreview = document.getElementById('articleCoverPreview');
   const coverClearBtn = document.getElementById('articleCoverClearBtn');
   const coverStatus = document.getElementById('articleCoverStatus');
+  const resourceInput = document.getElementById('resource-pdf-input');
+  const fileUrlInput = document.getElementById('articleFileUrl');
+  const fileCurrentWrap = document.getElementById('articleFileCurrent');
+  const fileLink = document.getElementById('articleFileLink');
+  const fileClearBtn = document.getElementById('articleFileClearBtn');
+  const fileStatus = document.getElementById('articleFileStatus');
 
   if (!modalEl || !form || !articlesWrap || !idInput) return;
 
@@ -500,6 +529,9 @@ export async function initDashboardPage(ctx = {}) {
   /** @type {File | null} */
   let pendingCoverFile = null;
   let coverMarkedForRemoval = false;
+  /** @type {File | null} */
+  let pendingResourceFile = null;
+  let resourceMarkedForRemoval = false;
 
   function setCoverStatus(message, isError = false) {
     if (!coverStatus) return;
@@ -511,6 +543,18 @@ export async function initDashboardPage(ctx = {}) {
     coverStatus.textContent = message;
     coverStatus.classList.remove('d-none', 'text-secondary', 'text-danger', 'text-success');
     coverStatus.classList.add(isError ? 'text-danger' : 'text-secondary');
+  }
+
+  function setFileStatus(message, isError = false) {
+    if (!fileStatus) return;
+    if (!message) {
+      fileStatus.classList.add('d-none');
+      fileStatus.textContent = '';
+      return;
+    }
+    fileStatus.textContent = message;
+    fileStatus.classList.remove('d-none', 'text-secondary', 'text-danger', 'text-success');
+    fileStatus.classList.add(isError ? 'text-danger' : 'text-secondary');
   }
 
   /**
@@ -527,6 +571,21 @@ export async function initDashboardPage(ctx = {}) {
     }
   }
 
+  /**
+   * @param {string | null | undefined} url
+   */
+  function showFileCurrent(url) {
+    if (!fileCurrentWrap || !fileLink) return;
+    if (url) {
+      fileLink.href = url;
+      fileLink.textContent = 'Текущ учебен ресурс';
+      fileCurrentWrap.classList.remove('d-none');
+    } else {
+      fileLink.removeAttribute('href');
+      fileCurrentWrap.classList.add('d-none');
+    }
+  }
+
   function resetCoverFields() {
     pendingCoverFile = null;
     coverMarkedForRemoval = false;
@@ -534,6 +593,15 @@ export async function initDashboardPage(ctx = {}) {
     if (coverUrlInput) coverUrlInput.value = '';
     showCoverPreview(null);
     setCoverStatus('');
+  }
+
+  function resetResourceFields() {
+    pendingResourceFile = null;
+    resourceMarkedForRemoval = false;
+    if (resourceInput) resourceInput.value = '';
+    if (fileUrlInput) fileUrlInput.value = '';
+    showFileCurrent(null);
+    setFileStatus('');
   }
 
   function showToast(message, variant = 'success') {
@@ -637,6 +705,7 @@ export async function initDashboardPage(ctx = {}) {
     draftTags = [];
     articleSlugTouched = false;
     resetCoverFields();
+    resetResourceFields();
     renderDraftTags();
     clearTagInputs();
     if (slugInput) slugInput.value = '';
@@ -671,6 +740,15 @@ export async function initDashboardPage(ctx = {}) {
     if (coverUrlInput) coverUrlInput.value = existingCover;
     showCoverPreview(existingCover || null);
     setCoverStatus(existingCover ? 'Текущо водещо изображение.' : '');
+
+    pendingResourceFile = null;
+    resourceMarkedForRemoval = false;
+    if (resourceInput) resourceInput.value = '';
+    const existingFile = article.file_url?.trim() || '';
+    if (fileUrlInput) fileUrlInput.value = existingFile;
+    showFileCurrent(existingFile || null);
+    setFileStatus(existingFile ? 'Текущ учебен ресурс е запазен.' : '');
+
     ensureRubrics().then((list) => {
       if (rubricSelect) {
         rubricSelect.innerHTML = rubricOptionsHtml(
@@ -786,6 +864,28 @@ export async function initDashboardPage(ctx = {}) {
         payload.cover_image_url = coverUrlInput.value.trim();
       }
 
+      if (pendingResourceFile) {
+        setFileStatus('Качване на учебен ресурс…');
+        if (saveBtn) {
+          saveBtn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Качване…';
+        }
+        const { publicUrl } = await uploadLessonResource({
+          file: pendingResourceFile,
+          userId,
+          onProgress: (label) => setFileStatus(label),
+        });
+        payload.file_url = publicUrl;
+        if (fileUrlInput) fileUrlInput.value = publicUrl;
+        setFileStatus('Учебният ресурс е качен.', false);
+        fileStatus?.classList.remove('text-secondary');
+        fileStatus?.classList.add('text-success');
+      } else if (resourceMarkedForRemoval) {
+        payload.file_url = null;
+      } else if (fileUrlInput?.value.trim()) {
+        payload.file_url = fileUrlInput.value.trim();
+      }
+
       if (saveBtn) {
         saveBtn.innerHTML =
           '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Запазване…';
@@ -827,6 +927,7 @@ export async function initDashboardPage(ctx = {}) {
       console.error('save article', error);
       showFormError(String(error?.message || error));
       setCoverStatus(String(error?.message || error), true);
+      setFileStatus(String(error?.message || error), true);
     } finally {
       isSaving = false;
       if (saveBtn) {
@@ -881,6 +982,38 @@ export async function initDashboardPage(ctx = {}) {
     if (coverUrlInput) coverUrlInput.value = '';
     showCoverPreview(null);
     setCoverStatus('Изображението ще бъде премахнато при запазване.');
+  });
+
+  resourceInput?.addEventListener('change', () => {
+    const file = resourceInput.files?.[0] ?? null;
+    if (!file) {
+      pendingResourceFile = null;
+      return;
+    }
+
+    const error = validateLessonResourceFile(file);
+    if (error) {
+      pendingResourceFile = null;
+      resourceInput.value = '';
+      setFileStatus(error, true);
+      showFormError(error);
+      return;
+    }
+
+    pendingResourceFile = file;
+    resourceMarkedForRemoval = false;
+    clearFormError();
+    setFileStatus(`Избран файл: ${file.name} (${Math.round(file.size / 1024)} КБ)`);
+    showFileCurrent(null);
+  });
+
+  fileClearBtn?.addEventListener('click', () => {
+    pendingResourceFile = null;
+    resourceMarkedForRemoval = true;
+    if (resourceInput) resourceInput.value = '';
+    if (fileUrlInput) fileUrlInput.value = '';
+    showFileCurrent(null);
+    setFileStatus('Учебният ресурс ще бъде премахнат при запазване.');
   });
 
   rubricSelect?.addEventListener('change', () => {

@@ -2,8 +2,11 @@ import { getSupabase } from './auth.js';
 import { isSupabaseConfigured } from '../config/supabase.js';
 
 export const ARTICLE_COVERS_BUCKET = 'article-covers';
+export const LESSON_RESOURCES_BUCKET = 'lesson-resources';
 
 const MAX_COVER_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_LESSON_BYTES = 20 * 1024 * 1024; // 20 MB
+
 const ALLOWED_MIME = new Set([
   'image/jpeg',
   'image/jpg',
@@ -12,17 +15,36 @@ const ALLOWED_MIME = new Set([
   'image/gif',
 ]);
 
+const ALLOWED_LESSON_MIME = new Set([
+  'application/pdf',
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/octet-stream',
+]);
+
 /**
  * @param {File} file
+ * @param {'cover' | 'lesson'} [kind]
  * @returns {string}
  */
-function fileExtension(file) {
+function fileExtension(file, kind = 'cover') {
   const fromName = String(file.name || '')
     .split('.')
     .pop()
     ?.toLowerCase()
     .replace(/[^a-z0-9]/g, '');
   if (fromName && fromName.length <= 5) return fromName;
+
+  if (kind === 'lesson') {
+    if (file.type === 'application/pdf') return 'pdf';
+    if (
+      file.type === 'application/zip' ||
+      file.type === 'application/x-zip-compressed'
+    ) {
+      return 'zip';
+    }
+    return 'pdf';
+  }
 
   if (file.type === 'image/png') return 'png';
   if (file.type === 'image/webp') return 'webp';
@@ -34,15 +56,33 @@ function fileExtension(file) {
  * Unique object path: {userId}/{timestamp}-{random}.{ext}
  * @param {string} userId
  * @param {File} file
+ * @param {'cover' | 'lesson'} [kind]
  */
-export function buildArticleCoverPath(userId, file) {
+function buildUserUploadPath(userId, file, kind = 'cover') {
   const stamp = Date.now().toString(36);
   const rand =
     typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID().slice(0, 8)
       : Math.random().toString(36).slice(2, 10);
-  const ext = fileExtension(file);
+  const ext = fileExtension(file, kind);
   return `${userId}/${stamp}-${rand}.${ext}`;
+}
+
+/**
+ * Unique object path: {userId}/{timestamp}-{random}.{ext}
+ * @param {string} userId
+ * @param {File} file
+ */
+export function buildArticleCoverPath(userId, file) {
+  return buildUserUploadPath(userId, file, 'cover');
+}
+
+/**
+ * @param {string} userId
+ * @param {File} file
+ */
+export function buildLessonResourcePath(userId, file) {
+  return buildUserUploadPath(userId, file, 'lesson');
 }
 
 /**
@@ -94,7 +134,7 @@ export async function uploadArticleCover({ file, userId, onProgress }) {
 
   if (error) {
     console.error('uploadArticleCover', error);
-    throw new Error(formatStorageError(error));
+    throw new Error(formatStorageError(error, 'cover'));
   }
 
   const { data } = supabase.storage.from(ARTICLE_COVERS_BUCKET).getPublicUrl(path);
@@ -104,6 +144,82 @@ export async function uploadArticleCover({ file, userId, onProgress }) {
   }
 
   onProgress?.('Изображението е качено.');
+  return { publicUrl, path };
+}
+
+/**
+ * @param {File | null | undefined} file
+ * @returns {string | null} human-readable error or null if ok
+ */
+export function validateLessonResourceFile(file) {
+  if (!file) return 'Изберете PDF или ZIP файл.';
+
+  const ext = String(file.name || '')
+    .split('.')
+    .pop()
+    ?.toLowerCase();
+  const typeOk =
+    ALLOWED_LESSON_MIME.has(file.type) || ext === 'pdf' || ext === 'zip';
+
+  if (!typeOk) {
+    return 'Позволени формати: PDF или ZIP.';
+  }
+  if (file.size > MAX_LESSON_BYTES) {
+    return 'Файлът е твърде голям (макс. 20 МБ).';
+  }
+  return null;
+}
+
+/**
+ * Upload lesson PDF/ZIP to public bucket `lesson-resources`.
+ * @param {{ file: File, userId: string, onProgress?: (label: string) => void }} opts
+ * @returns {Promise<{ publicUrl: string, path: string }>}
+ */
+export async function uploadLessonResource({ file, userId, onProgress }) {
+  if (!isSupabaseConfigured()) {
+    throw new Error('Supabase не е конфигуриран.');
+  }
+  if (!userId) {
+    throw new Error('Липсва потребител за качване.');
+  }
+
+  const validationError = validateLessonResourceFile(file);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    throw new Error('Supabase клиентът не е наличен.');
+  }
+
+  const path = buildLessonResourcePath(userId, file);
+  onProgress?.('Качване на учебен ресурс…');
+
+  const contentType =
+    file.type ||
+    (String(file.name).toLowerCase().endsWith('.zip')
+      ? 'application/zip'
+      : 'application/pdf');
+
+  const { error } = await supabase.storage.from(LESSON_RESOURCES_BUCKET).upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+    contentType,
+  });
+
+  if (error) {
+    console.error('uploadLessonResource', error);
+    throw new Error(formatStorageError(error, 'lesson'));
+  }
+
+  const { data } = supabase.storage.from(LESSON_RESOURCES_BUCKET).getPublicUrl(path);
+  const publicUrl = data?.publicUrl;
+  if (!publicUrl) {
+    throw new Error('Качването успя, но публичният адрес липсва.');
+  }
+
+  onProgress?.('Учебният ресурс е качен.');
   return { publicUrl, path };
 }
 
@@ -132,17 +248,22 @@ export async function deleteArticleCoverByUrl(publicUrl) {
 
 /**
  * @param {unknown} error
+ * @param {'cover' | 'lesson'} [kind]
  */
-export function formatStorageError(error) {
+export function formatStorageError(error, kind = 'cover') {
   const message = String(
     /** @type {{ message?: string }} */ (error)?.message ?? error ?? '',
   );
 
   if (/payload too large|maximum|size/i.test(message)) {
-    return 'Файлът е твърде голям (макс. 5 МБ).';
+    return kind === 'lesson'
+      ? 'Файлът е твърде голям (макс. 20 МБ).'
+      : 'Файлът е твърде голям (макс. 5 МБ).';
   }
   if (/mime|type|not allowed/i.test(message)) {
-    return 'Позволени формати: JPEG, PNG, WebP, GIF.';
+    return kind === 'lesson'
+      ? 'Позволени формати: PDF или ZIP.'
+      : 'Позволени формати: JPEG, PNG, WebP, GIF.';
   }
   if (/row-level security|policy|unauthorized|403/i.test(message)) {
     return 'Нямате права за качване. Влезте отново като автор или администратор.';
@@ -150,5 +271,10 @@ export function formatStorageError(error) {
   if (/network|fetch|failed to fetch|load failed/i.test(message)) {
     return 'Няма връзка със сървъра при качване. Опитайте отново.';
   }
-  return message || 'Качването на изображението не бе успешно.';
+  return (
+    message ||
+    (kind === 'lesson'
+      ? 'Качването на учебния ресурс не бе успешно.'
+      : 'Качването на изображението не бе успешно.')
+  );
 }

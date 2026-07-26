@@ -144,6 +144,23 @@ export async function renderArticlePage(_ctx = {}) {
           }
 
           ${
+            article.file_url
+              ? `<div class="mb-4">
+                  <a
+                    href="${escapeHtml(article.file_url)}"
+                    class="btn btn-lg btn-crescendo resource-download-btn"
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <i class="bi bi-download me-2" aria-hidden="true"></i>
+                    Изтегли учебния ресурс (PDF)
+                  </a>
+                </div>`
+              : ''
+          }
+
+          ${
             article.cover_image_url || getArticleImage(article)
               ? `<img src="${escapeHtml(getArticleImage(article))}" alt="" class="img-fluid rounded mb-4 w-100 article-hero-img" />`
               : ''
