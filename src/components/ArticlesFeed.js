@@ -75,7 +75,7 @@ function renderCard(article, showRubricBadge) {
   });
 
   return `
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
       <article class="article-card">
         <a href="${href}" class="article-card__media" style="background-image:url('${img}')">
           ${showRubricBadge && rubric?.title
@@ -95,7 +95,7 @@ function renderCard(article, showRubricBadge) {
               ? `<div class="mt-3">
                   <a
                     href="${escapeHtml(article.file_url)}"
-                    class="btn btn-sm btn-crescendo resource-download-btn"
+                    class="btn btn-sm btn-crescendo resource-download-btn w-100 w-md-auto"
                     download
                     target="_blank"
                     rel="noopener noreferrer"

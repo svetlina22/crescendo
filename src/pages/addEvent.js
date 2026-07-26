@@ -13,7 +13,7 @@ function localDatetimeToIso(value) {
 
 export async function renderAddEventPage() {
   return `
-    <section class="container py-5" style="max-width: 40rem">
+    <section class="container py-4 py-md-5" style="max-width: 40rem">
       <div class="mb-4">
         <p class="text-uppercase small fw-semibold text-secondary mb-2">Администратор</p>
         <h1 class="h2 mb-2">Добавяне на събитие</h1>

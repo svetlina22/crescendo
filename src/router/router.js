@@ -7,6 +7,21 @@ import { renderFooter } from '../components/Footer.js';
 
 const PROTECTED_PAGES = new Set(['dashboard', 'add-event']);
 
+/** Close Bootstrap collapse after navigating on small screens. */
+function initMobileNav(headerEl) {
+  const collapseEl = headerEl?.querySelector('#mainNav');
+  if (!collapseEl) return;
+
+  collapseEl.querySelectorAll('.nav-link').forEach((link) => {
+    link.addEventListener('click', async () => {
+      if (window.matchMedia('(min-width: 1200px)').matches) return;
+      if (!collapseEl.classList.contains('show')) return;
+      const { Collapse } = await import('bootstrap');
+      Collapse.getOrCreateInstance(collapseEl).hide();
+    });
+  });
+}
+
 function showPageError(pageEl, error, htmlFirst) {
   const message = String(error?.message || error);
   const alertHtml = `
@@ -37,6 +52,7 @@ export async function mountPage() {
 
   headerEl.innerHTML = renderHeader(meta?.path || '/index.html');
   footerEl.innerHTML = renderFooter(meta?.path || '/index.html');
+  initMobileNav(headerEl);
 
   if (!meta) {
     document.title = 'Страницата не е намерена · Crescendo';

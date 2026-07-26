@@ -111,7 +111,7 @@ function renderStats(articles, isAdmin) {
 
   return `
     <div class="row g-3 mb-4" id="panelStats">
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body">
             <h2 class="h6 text-secondary">Чернови</h2>
@@ -119,7 +119,7 @@ function renderStats(articles, isAdmin) {
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body">
             <h2 class="h6 text-secondary">За преглед</h2>
@@ -127,7 +127,7 @@ function renderStats(articles, isAdmin) {
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body">
             <h2 class="h6 text-secondary">Публикувани</h2>
@@ -135,7 +135,7 @@ function renderStats(articles, isAdmin) {
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body">
             <h2 class="h6 text-secondary">${isAdmin ? 'Всички' : 'Общо'}</h2>
@@ -206,19 +206,19 @@ function renderArticlesTable(articles = [], isAdmin = false) {
             <span class="fw-semibold">${escapeHtml(article.title)}</span>
             ${
               article.summary
-                ? `<div class="small text-secondary text-truncate" style="max-width: 22rem">${escapeHtml(article.summary)}</div>`
+                ? `<div class="small text-secondary text-truncate panel-article-summary">${escapeHtml(article.summary)}</div>`
                 : ''
             }
           </td>
           ${
             isAdmin
-              ? `<td class="small">${escapeHtml(authorLabel(article))}</td>`
+              ? `<td class="small d-none d-lg-table-cell">${escapeHtml(authorLabel(article))}</td>`
               : ''
           }
-          <td class="small text-secondary">${formatDate(article.created_at)}</td>
+          <td class="small text-secondary d-none d-md-table-cell">${formatDate(article.created_at)}</td>
           <td>${statusBadge(article.status)}</td>
           <td>
-            <div class="d-flex flex-wrap gap-1 justify-content-end">
+            <div class="d-flex flex-wrap gap-1 justify-content-md-end panel-actions">
               ${actionButtons.join('') || '<span class="text-secondary">—</span>'}
             </div>
           </td>
@@ -230,14 +230,14 @@ function renderArticlesTable(articles = [], isAdmin = false) {
   return `
     <div class="card border-0 shadow-sm">
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 panel-articles-table">
           <thead class="table-light">
             <tr>
               <th scope="col">Заглавие</th>
-              ${isAdmin ? '<th scope="col">Автор</th>' : ''}
-              <th scope="col">Създадена</th>
+              ${isAdmin ? '<th scope="col" class="d-none d-lg-table-cell">Автор</th>' : ''}
+              <th scope="col" class="d-none d-md-table-cell">Създадена</th>
               <th scope="col">Статус</th>
-              <th scope="col" class="text-end">Действия</th>
+              <th scope="col" class="text-md-end">Действия</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -263,7 +263,7 @@ function toastHtml() {
 function modalHtml(isAdmin, rubrics = []) {
   return `
     <div class="modal fade" id="articleModal" tabindex="-1" aria-labelledby="articleModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
         <form class="modal-content" id="articleForm" novalidate>
           <div class="modal-header">
             <h2 class="modal-title h5" id="articleModalLabel">Нова статия</h2>
@@ -435,20 +435,20 @@ export async function renderDashboardPage(ctx = {}) {
       data-role="${isAdmin ? 'admin' : 'author'}"
       data-user-id="${escapeHtml(userId ?? '')}">
       <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
-        <div>
+        <div class="min-w-0 flex-grow-1">
           <h1 class="h3 mb-1">${title}</h1>
           <p class="text-secondary mb-0">${subtitle}</p>
         </div>
-        <div class="d-flex flex-wrap gap-2">
-          <button type="button" class="btn btn-crescendo btn-sm" id="newArticleBtn">
+        <div class="d-flex flex-wrap gap-2 w-100 w-sm-auto dashboard-toolbar">
+          <button type="button" class="btn btn-crescendo btn-sm flex-grow-1 flex-sm-grow-0" id="newArticleBtn">
             <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
             Нова статия
           </button>
-          <a href="/add-event.html" class="btn btn-outline-secondary btn-sm">
+          <a href="/add-event.html" class="btn btn-outline-secondary btn-sm flex-grow-1 flex-sm-grow-0">
             <i class="bi bi-calendar-plus me-1" aria-hidden="true"></i>
             Ново събитие
           </a>
-          <button type="button" class="btn btn-outline-secondary btn-sm" id="logoutBtn">
+          <button type="button" class="btn btn-outline-secondary btn-sm flex-grow-1 flex-sm-grow-0" id="logoutBtn">
             <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>
             Изход
           </button>

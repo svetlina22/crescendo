@@ -16,7 +16,7 @@ export function renderHeader(activePath = '/index.html') {
 
   return `
     <header class="site-header">
-      <nav class="navbar navbar-expand-lg py-2">
+      <nav class="navbar navbar-expand-xl py-2">
         <div class="container">
           <a class="navbar-brand d-flex align-items-center gap-2" href="/index.html">
             <i class="bi bi-music-note-beamed fs-4" aria-hidden="true"></i>
@@ -30,7 +30,7 @@ export function renderHeader(activePath = '/index.html') {
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav mx-lg-auto align-items-lg-center gap-lg-1 py-3 py-lg-0">
+            <ul class="navbar-nav ms-xl-auto align-items-xl-center gap-xl-1 py-3 py-xl-0">
               <li class="nav-item"><a class="${linkClass('/index.html')}" href="/index.html">Начало</a></li>
               ${rubricLinks}
               <li class="nav-item"><a class="${linkClass('/about.html')}" href="/about.html">За нас</a></li>

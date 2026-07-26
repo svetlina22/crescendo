@@ -148,7 +148,7 @@ export async function renderArticlePage(_ctx = {}) {
               ? `<div class="mb-4">
                   <a
                     href="${escapeHtml(article.file_url)}"
-                    class="btn btn-lg btn-crescendo resource-download-btn"
+                    class="btn btn-lg btn-crescendo resource-download-btn w-100 w-md-auto"
                     download
                     target="_blank"
                     rel="noopener noreferrer"
