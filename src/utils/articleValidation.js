@@ -21,7 +21,14 @@ export function validateArticleForm(fields = {}) {
   if (!String(fields.slug ?? '').trim()) {
     errors.push({ field: 'slug', message: 'Въведете адрес след рубриката.' });
   }
-  if (!String(fields.content ?? '').trim()) {
+
+  const contentHtml = String(fields.content ?? '');
+  const contentText = contentHtml
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!contentText) {
     errors.push({ field: 'content', message: 'Въведете основен текст.' });
   }
 

@@ -16,6 +16,11 @@ import {
   validateLessonResourceFile,
 } from '../services/storage.js';
 import { validateArticleForm } from '../utils/articleValidation.js';
+import {
+  createArticleQuill,
+  getQuillHtml,
+  setQuillHtml,
+} from '../components/ArticleEditor.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -331,8 +336,11 @@ function modalHtml(isAdmin, rubrics = []) {
               <div id="articleFileStatus" class="small text-secondary mt-2 d-none" role="status"></div>
             </div>
             <div class="mb-3">
-              <label for="articleContent" class="form-label">Основен текст <span class="text-danger">*</span></label>
-              <textarea class="form-control" id="articleContent" name="content" rows="8"></textarea>
+              <label for="editor-container" class="form-label">Основен текст <span class="text-danger">*</span></label>
+              <div id="editor-container" class="article-quill-editor" style="height: 300px"></div>
+              <div class="form-text">
+                Форматирайте текста със заглавия, списъци, цитати и линкове.
+              </div>
             </div>
             <div class="mb-3">
               <label for="tags-input" class="form-label">Тагове</label>
@@ -459,7 +467,7 @@ export async function initDashboardPage(ctx = {}) {
   const toastBody = document.getElementById('panelToastBody');
   const titleInput = document.getElementById('articleTitle');
   const summaryInput = document.getElementById('articleSummary');
-  const contentInput = document.getElementById('articleContent');
+  const editorContainer = document.getElementById('editor-container');
   const rubricSelect = document.getElementById('articleRubric');
   const slugInput = document.getElementById('articleSlug');
   const slugPrefixEl = document.getElementById('articleSlugPrefix');
@@ -492,6 +500,21 @@ export async function initDashboardPage(ctx = {}) {
   /** @type {File | null} */
   let pendingResourceFile = null;
   let resourceMarkedForRemoval = false;
+
+  /** @type {import('quill').default | null} */
+  let quill = null;
+  let pendingQuillHtml = '';
+
+  function ensureQuill() {
+    if (quill || !editorContainer) return quill;
+    quill = createArticleQuill(editorContainer);
+    return quill;
+  }
+
+  modalEl.addEventListener('shown.bs.modal', () => {
+    ensureQuill();
+    if (quill) setQuillHtml(quill, pendingQuillHtml);
+  });
 
   function setCoverStatus(message, isError = false) {
     if (!coverStatus) return;
@@ -642,6 +665,7 @@ export async function initDashboardPage(ctx = {}) {
     });
     if (statusSelect) statusSelect.innerHTML = statusOptionsHtml(isAdmin, 'draft');
     clearFormError();
+    pendingQuillHtml = '';
     modal.show();
   }
 
@@ -652,7 +676,6 @@ export async function initDashboardPage(ctx = {}) {
     if (modalLabel) modalLabel.textContent = 'Редакция на статия';
     if (titleInput) titleInput.value = article.title ?? '';
     if (summaryInput) summaryInput.value = article.summary ?? '';
-    if (contentInput) contentInput.value = article.content ?? '';
     if (slugInput) slugInput.value = article.slug ?? '';
     pendingCoverFile = null;
     coverMarkedForRemoval = false;
@@ -693,6 +716,7 @@ export async function initDashboardPage(ctx = {}) {
     }
 
     clearFormError();
+    pendingQuillHtml = article.content ?? '';
     modal.show();
   }
 
@@ -705,7 +729,7 @@ export async function initDashboardPage(ctx = {}) {
     const id = idInput.value.trim();
     const title = titleInput?.value.trim() ?? '';
     const summary = summaryInput?.value.trim() ?? '';
-    const content = contentInput?.value.trim() ?? '';
+    const content = getQuillHtml(ensureQuill());
     const rubricId = rubricSelect?.value ?? '';
     const articleSlug = slugifyTag(slugInput?.value ?? '');
     let status = statusSelect?.value ?? 'draft';
@@ -723,7 +747,7 @@ export async function initDashboardPage(ctx = {}) {
       if (first.field === 'title') titleInput?.focus();
       else if (first.field === 'rubricId') rubricSelect?.focus();
       else if (first.field === 'slug') slugInput?.focus();
-      else if (first.field === 'content') contentInput?.focus();
+      else if (first.field === 'content') quill?.focus();
       return;
     }
 

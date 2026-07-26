@@ -24,14 +24,14 @@ describe('validateArticleForm', () => {
     ]);
   });
 
-  it('treats whitespace-only values as empty', () => {
+  it('treats empty Quill HTML as missing content', () => {
     const result = validateArticleForm({
-      title: '   ',
+      title: 'Заглавие',
       rubricId: 'x',
       slug: 'ok',
-      content: 'body',
+      content: '<p><br></p>',
     });
     expect(result.ok).toBe(false);
-    expect(result.errors[0].field).toBe('title');
+    expect(result.errors.some((e) => e.field === 'content')).toBe(true);
   });
 });

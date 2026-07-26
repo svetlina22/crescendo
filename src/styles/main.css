@@ -1173,15 +1173,76 @@ h1, h2, h3, h4, h5, h6,
   font-size: 1.05rem;
 }
 
-.article-body blockquote {
+.article-body h1,
+.article-body h2,
+.article-body h3 {
+  font-family: var(--font-display);
+  color: var(--cr-heading);
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.article-body p {
+  margin-bottom: 1rem;
+}
+
+.article-body ul,
+.article-body ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.35rem;
+}
+
+.article-body a {
+  color: var(--secondary);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.article-body blockquote,
+.inspiration-quote {
   border-left: 4px solid var(--accent);
-  padding-left: 1.25rem;
   font-family: var(--font-display);
   font-size: 1.15rem;
+  font-weight: 600;
   color: var(--primary);
-  background: var(--cr-accent-soft);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, var(--cr-accent-soft) 100%);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.article-body blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Quill editor in dashboard modal */
+.article-quill-editor {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.article-quill-editor .ql-toolbar.ql-snow {
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-light);
+}
+
+.article-quill-editor .ql-container.ql-snow {
+  border: none;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  min-height: 240px;
+}
+
+.article-quill-editor .ql-editor {
+  min-height: 240px;
+}
+
+.article-quill-editor .ql-editor.ql-blank::before {
+  color: var(--text-muted);
+  font-style: normal;
 }
 
 .article-hero-img {

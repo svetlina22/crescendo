@@ -3,6 +3,7 @@ import { RUBRICS, getRubricAccent } from '../data/rubrics.js';
 import { getArticleImage } from '../data/visuals.js';
 import { renderTagBadges } from '../components/TagBadges.js';
 import { applyPageSeo, setArticleJsonLd } from '../utils/seo.js';
+import { formatArticleBodyHtml } from '../components/ArticleEditor.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -28,20 +29,9 @@ function rubricPath(slug) {
   return match?.path ?? '/index.html';
 }
 
-/** Plain text → paragraphs (escape + split on blank lines). */
+/** Plain text → paragraphs, or Quill HTML as trusted markup. */
 function formatContent(content) {
-  const text = String(content ?? '').trim();
-  if (!text) {
-    return '<p class="text-secondary">Няма съдържание.</p>';
-  }
-
-  return text
-    .split(/\n{2,}/)
-    .map((block) => {
-      const lines = escapeHtml(block).replaceAll('\n', '<br />');
-      return `<p class="mb-4">${lines}</p>`;
-    })
-    .join('');
+  return formatArticleBodyHtml(content);
 }
 
 function notFoundHtml(slug) {

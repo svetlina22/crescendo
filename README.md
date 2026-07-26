@@ -21,6 +21,7 @@ Crescendo публикува редакционно съдържание и пр
 | **Търсачка** | Частично, case-insensitive търсене (`ilike`) в заглавие, резюме, съдържание и рубрики; съвпадения и в масива `articles.tags` |
 | **Тагове** | Масив от текст (`TEXT[]`) директно в `articles` — баджове, филтър с `contains` / `tags=cs.{tag}` |
 | **Редакторски панел** | Автори и администратори създават/редактират статии; само админ публикува |
+| **Rich text (Quill.js)** | Визуален редактор в панела — заглавия, bold/italic, цитати, списъци, линкове; HTML се записва в `articles.content` |
 
 > Статичните текстове на публичните страници са в HTML; динамичните данни идват от Supabase чрез Vanilla JS.
 
@@ -466,7 +467,7 @@ crescendo/
 ├── events.html                # Календар със събития
 ├── about.html                 # За нас (статичен HTML)
 ├── login.html                 # Вход
-├── dashboard.html             # Авторски/админ панел ≈ add-article.html (форма в модал)
+├── dashboard.html             # Авторски/админ панел ≈ add-article.html (форма в модал + Quill)
 ├── add-event.html             # Форма за ново събитие
 │
 ├── package.json
@@ -483,11 +484,11 @@ crescendo/
 │   ├── pages/                 # ≈ js/pages/ — логика по екрани
 │   │   ├── home.js            # Feed + търсене
 │   │   ├── article.js         # Изглед на статия
-│   │   ├── dashboard.js       # CRUD статии, качване корица/PDF
+│   │   ├── dashboard.js       # CRUD статии, Quill редактор, качване корица/PDF
 │   │   ├── events.js
 │   │   ├── addEvent.js
 │   │   └── login.js
-│   ├── components/            # Header, Footer, HeroCarousel, ArticlesFeed…
+│   ├── components/            # Header, Footer, HeroCarousel, ArticlesFeed, ArticleEditor (Quill)…
 │   ├── services/              # Supabase API слой
 │   │   ├── auth.js
 │   │   ├── articles.js        # CRUD, search, tags TEXT[] (contains / parseTagsInput)
@@ -520,7 +521,7 @@ crescendo/
 
 | Искано / класическо име | В този проект |
 |-------------------------|---------------|
-| `add-article.html` | `dashboard.html` + модал в `src/pages/dashboard.js` |
+| `add-article.html` | `dashboard.html` + модал в `src/pages/dashboard.js` (Quill в `#editor-container`) |
 | `category.html` | `benefits.html`, `policies.html`, `practices.html`, … |
 | `css/style.css` | `src/styles/main.css` |
 | `js/…` | `src/pages/`, `src/components/`, `src/services/` |
