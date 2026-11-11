@@ -75,8 +75,8 @@
 
   --font-display: 'Manrope', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
-  --radius: 24px;
-  --radius-sm: 16px;
+  --radius: 10px;
+  --radius-sm: 5px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
@@ -98,7 +98,7 @@
   --bs-secondary-rgb: 91, 82, 104;
   --bs-secondary-color: var(--text-muted);
   --bs-border-radius: var(--radius-sm);
-  --bs-border-radius-sm: 12px;
+  --bs-border-radius-sm: 5px;
   --bs-border-radius-lg: var(--radius);
   --bs-border-color: var(--border-color);
   --bs-card-bg: var(--surface);
@@ -815,7 +815,7 @@ h1, h2, h3, h4, h5, h6,
   display: grid;
   grid-template-columns: 1fr;
   gap: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--cr-gradient-surface);
   border: 1px solid var(--border-color);
@@ -900,7 +900,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .article-card {
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--cr-surface);
   border: 1px solid var(--border-color);
