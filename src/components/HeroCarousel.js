@@ -136,6 +136,11 @@ export async function initHeroCarousel() {
 
     carouselEl.addEventListener('slid.bs.carousel', (event) => {
       const index = event.to;
+      indicatorsEl?.querySelectorAll('[data-bs-target]').forEach((indicator, i) => {
+        const isActive = i === index;
+        indicator.classList.toggle('active', isActive);
+        indicator.setAttribute('aria-current', isActive ? 'true' : 'false');
+      });
       navEl?.querySelectorAll('.hero-rubric-nav__btn').forEach((btn, i) => {
         btn.classList.toggle('is-active', i === index);
         btn.setAttribute('aria-current', i === index ? 'true' : 'false');
