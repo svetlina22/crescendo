@@ -471,7 +471,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .hero-carousel__indicators [data-bs-target].active {
-  background-color: #ff7a45;
+  background-color: #fff;
 }
 
 .hero-carousel__indicators [data-bs-target].active::before {
