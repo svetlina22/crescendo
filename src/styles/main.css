@@ -442,6 +442,7 @@ h1, h2, h3, h4, h5, h6,
   bottom: 0;
   margin-bottom: 0;
   gap: 0;
+  transform: translateY(12px);
 }
 
 .hero-carousel__indicators [data-bs-target] {
