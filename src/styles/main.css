@@ -833,7 +833,7 @@ h1, h2, h3, h4, h5, h6,
   inset: 0;
   border-radius: inherit;
   padding: 2px;
-  background: var(--cr-gradient-brand);
+  background: #e5e7eb;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -917,7 +917,7 @@ h1, h2, h3, h4, h5, h6,
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--cr-gradient-brand);
+  background: #e5e7eb;
   opacity: 0;
   transition: opacity 0.3s var(--ease);
   z-index: 2;
