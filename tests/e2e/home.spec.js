@@ -13,9 +13,9 @@ test('home page loads and hero carousel is present', async ({ page }) => {
   expect(slideCount).toBeGreaterThan(0);
 
   if (slideCount > 1) {
-    const navBtn = page.locator('#heroRubricNav .hero-rubric-nav__btn').nth(1);
-    await expect(navBtn).toBeVisible();
-    await navBtn.click();
+    const nextButton = page.locator('.hero-carousel__control.carousel-control-next');
+    await expect(nextButton).toBeVisible();
+    await nextButton.click();
     await expect(page.locator('#heroCarouselInner .carousel-item.active')).toBeVisible();
   }
 });

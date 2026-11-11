@@ -53,22 +53,6 @@ function renderSlide({ rubric, article }, isActive) {
     </div>`;
 }
 
-function renderNavButton(rubric, index, isActive) {
-  const meta = SLIDE_META[rubric.slug] ?? { emoji: '•' };
-  return `
-    <button
-      type="button"
-      class="hero-rubric-nav__btn${isActive ? ' is-active' : ''}"
-      data-bs-target="#heroCarousel"
-      data-bs-slide-to="${index}"
-      aria-label="${escapeHtml(rubric.title)}"
-      aria-current="${isActive ? 'true' : 'false'}"
-    >
-      <span class="hero-rubric-nav__emoji" aria-hidden="true">${meta.emoji}</span>
-      <span class="hero-rubric-nav__label">${escapeHtml(rubric.title)}</span>
-    </button>`;
-}
-
 function renderLoadingSlide() {
   return `
     <div class="carousel-item active hero-carousel__slide hero-carousel__slide--loading">
@@ -88,8 +72,6 @@ function renderLoadingSlide() {
 export async function initHeroCarousel() {
   const carouselEl = document.getElementById('heroCarousel');
   const innerEl = document.getElementById('heroCarouselInner');
-  const indicatorsEl = document.getElementById('heroCarouselIndicators');
-  const navEl = document.getElementById('heroRubricNav');
   if (!carouselEl || !innerEl) return;
 
   innerEl.innerHTML = renderLoadingSlide();
@@ -106,45 +88,12 @@ export async function initHeroCarousel() {
       .map((slide, index) => renderSlide(slide, index === 0))
       .join('');
 
-    if (indicatorsEl) {
-      indicatorsEl.innerHTML = slides
-        .map(
-          (_, index) => `
-          <button type="button"
-            data-bs-target="#heroCarousel"
-            data-bs-slide-to="${index}"
-            ${index === 0 ? 'class="active" aria-current="true"' : ''}
-            aria-label="Слайд ${index + 1}"></button>`,
-        )
-        .join('');
-    }
-
-    if (navEl) {
-      navEl.innerHTML = `
-        <div class="hero-rubric-nav__list" role="tablist">
-          ${slides.map(({ rubric }, index) => renderNavButton(rubric, index, index === 0)).join('')}
-        </div>`;
-    }
-
     const { Carousel } = await import('bootstrap');
     const carousel = Carousel.getOrCreateInstance(carouselEl, {
       interval: 6500,
       ride: false,
       touch: true,
       wrap: true,
-    });
-
-    carouselEl.addEventListener('slid.bs.carousel', (event) => {
-      const index = event.to;
-      indicatorsEl?.querySelectorAll('[data-bs-target]').forEach((indicator, i) => {
-        const isActive = i === index;
-        indicator.classList.toggle('active', isActive);
-        indicator.setAttribute('aria-current', isActive ? 'true' : 'false');
-      });
-      navEl?.querySelectorAll('.hero-rubric-nav__btn').forEach((btn, i) => {
-        btn.classList.toggle('is-active', i === index);
-        btn.setAttribute('aria-current', i === index ? 'true' : 'false');
-      });
     });
 
     carousel.cycle();

@@ -1,6 +1,6 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Noto+Sans:wght@600;700;800&display=swap');
 
 :root {
   /* 1. Основни цветове за марката — ярки, топли, жизнени */
@@ -73,7 +73,9 @@
   --cr-card-shadow: 0 2px 8px -2px rgba(46, 16, 101, 0.1), 0 10px 32px -12px rgba(46, 16, 101, 0.14);
   --cr-card-shadow-hover: 0 20px 48px -14px rgba(46, 16, 101, 0.2), 0 12px 28px -10px rgba(255, 122, 69, 0.22);
 
-  --font-display: 'Manrope', system-ui, sans-serif;
+  --font-display: 'Noto Sans', system-ui, sans-serif;
+  --font-article-title: 'Noto Sans', system-ui, sans-serif;
+  --font-article-body: 'Inter', Georgia, serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --radius: 10px;
   --radius-sm: 5px;
@@ -347,13 +349,19 @@ h1, h2, h3, h4, h5, h6,
 /* ── Hero carousel (compact) ────────────────────────── */
 
 .hero-compact {
+  width: 100%;
   background: var(--bg-light);
   border-bottom: 1px solid var(--border-color);
 }
 
 .hero-carousel {
   position: relative;
-  height: 420px;
+  width: 100%;
+  height: 360px;
+}
+
+.hero-carousel .carousel-inner {
+  height: 100%;
 }
 
 .hero-carousel__slide {
@@ -437,51 +445,6 @@ h1, h2, h3, h4, h5, h6,
   padding: 0.45rem 1.1rem;
 }
 
-.hero-carousel__indicators {
-  align-items: center;
-  bottom: 0;
-  margin-bottom: 0;
-  gap: 0;
-  transform: translateY(12px);
-}
-
-.hero-carousel__indicators [data-bs-target] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
-  margin: 0;
-  padding: 0;
-  border-radius: 999px;
-  border: none;
-  background: transparent;
-  opacity: 1;
-  transition: background-color 0.2s var(--ease);
-}
-
-.hero-carousel__indicators [data-bs-target]::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background-color: #fff;
-  box-shadow: 0 0 0 1px rgba(46, 16, 101, 0.35);
-  transition: transform 0.2s var(--ease), background-color 0.2s var(--ease);
-}
-
-.hero-carousel__indicators [data-bs-target].active {
-  background-color: #fff;
-}
-
-.hero-carousel__indicators [data-bs-target].active::before {
-  width: 12px;
-  height: 12px;
-  background-color: var(--accent);
-  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(46, 16, 101, 0.5);
-}
-
 .hero-carousel__control {
   width: 2.75rem;
   opacity: 1;
@@ -506,56 +469,6 @@ h1, h2, h3, h4, h5, h6,
   color: var(--primary);
 }
 
-.hero-rubric-nav {
-  padding: 0.25rem 0 0.5rem;
-}
-
-.hero-rubric-nav__list {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.4rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  padding-bottom: 0.15rem;
-  margin-inline: -0.25rem;
-  padding-inline: 0.25rem;
-}
-
-.hero-rubric-nav__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid var(--border-color);
-  background: var(--surface);
-  color: var(--text-muted);
-  font-size: 0.92rem;
-  font-weight: 600;
-  padding: 0.4rem 0.85rem;
-  border-radius: 999px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex: 0 0 auto;
-  transition: border-color 0.2s var(--ease), background 0.2s var(--ease), color 0.2s var(--ease);
-}
-
-.hero-rubric-nav__btn:hover {
-  border-color: var(--accent);
-  color: var(--primary);
-  background: var(--cr-accent-soft);
-}
-
-.hero-rubric-nav__btn.is-active {
-  border-color: var(--primary);
-  background: var(--primary);
-  color: #fff;
-}
-
-.hero-rubric-nav__emoji {
-  font-size: 1.05rem;
-  line-height: 1;
-}
-
 @media (max-width: 575.98px) {
   .hero-carousel__body {
     padding: 1.25rem 0 2.25rem;
@@ -571,18 +484,6 @@ h1, h2, h3, h4, h5, h6,
     margin-bottom: 0.75rem;
   }
 
-  .hero-carousel__indicators {
-    margin-bottom: 0;
-  }
-
-  .hero-rubric-nav__label {
-    display: none;
-  }
-
-  .hero-rubric-nav__btn {
-    padding: 0.45rem 0.65rem;
-  }
-
   .hero-carousel__control {
     display: none;
   }
@@ -592,18 +493,6 @@ h1, h2, h3, h4, h5, h6,
   .hero-carousel__body {
     padding-inline-end: 3rem;
     max-width: min(640px, 78%);
-  }
-
-  .hero-rubric-nav__list {
-    flex-wrap: wrap;
-    overflow: visible;
-  }
-}
-
-@media (min-width: 992px) {
-  .hero-rubric-nav__list {
-    flex-wrap: wrap;
-    overflow: visible;
   }
 }
 
@@ -986,7 +875,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .article-card__title {
-  font-family: var(--font-display);
+  font-family: var(--font-article-title);
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.3;
@@ -1361,6 +1250,7 @@ a:hover .article-card__media-badge,
 }
 
 .article-body {
+  font-family: var(--font-article-body);
   line-height: 1.75;
   font-size: 1.05rem;
 }

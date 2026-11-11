@@ -71,7 +71,7 @@ function renderCard(article, showRubricBadge) {
   const author = article.profiles;
   const authorLabel = [author?.academic_title, author?.full_name].filter(Boolean).join(' ');
   const tagsHtml = renderTagBadges(normalizeTags(article.tags), {
-    className: 'd-flex flex-wrap gap-1 mt-2',
+    className: 'article-card__tags d-flex flex-wrap gap-1',
   });
 
   return `
@@ -89,7 +89,6 @@ function renderCard(article, showRubricBadge) {
             ${authorLabel ? escapeHtml(authorLabel) : ''}
             ${article.reading_time_min ? ` · ${article.reading_time_min} мин` : ''}
           </p>
-          ${tagsHtml}
           ${
             article.file_url
               ? `<div class="mt-3">
@@ -106,6 +105,7 @@ function renderCard(article, showRubricBadge) {
                 </div>`
               : ''
           }
+          ${tagsHtml}
         </div>
       </article>
     </div>`;
