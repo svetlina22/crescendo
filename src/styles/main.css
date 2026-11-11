@@ -815,10 +815,10 @@ h1, h2, h3, h4, h5, h6,
   display: grid;
   grid-template-columns: 1fr;
   gap: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   overflow: hidden;
   background: var(--cr-gradient-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid #e5e7eb;
   box-shadow: var(--cr-card-shadow);
   margin-bottom: 1.5rem;
   text-decoration: none;
@@ -900,10 +900,10 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .article-card {
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   overflow: hidden;
   background: var(--cr-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid #e5e7eb;
   box-shadow: var(--cr-card-shadow);
   transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
   height: 100%;
