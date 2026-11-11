@@ -353,7 +353,7 @@ h1, h2, h3, h4, h5, h6,
 
 .hero-carousel {
   position: relative;
-  height: clamp(340px, 62vw, 520px);
+  height: clamp(380px, 68vw, 580px);
 }
 
 .hero-carousel__slide {
@@ -439,7 +439,8 @@ h1, h2, h3, h4, h5, h6,
 
 .hero-carousel__indicators {
   align-items: center;
-  margin-bottom: 0.15rem;
+  bottom: 0;
+  margin-bottom: 0;
   gap: 0;
 }
 
@@ -449,6 +450,7 @@ h1, h2, h3, h4, h5, h6,
   justify-content: center;
   width: 44px;
   height: 44px;
+  flex: 0 0 44px;
   margin: 0;
   padding: 0;
   border-radius: 999px;
@@ -463,17 +465,20 @@ h1, h2, h3, h4, h5, h6,
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background-color: rgba(255, 255, 255, 0.45);
+  background-color: #fff;
+  box-shadow: 0 0 0 1px rgba(46, 16, 101, 0.35);
   transition: transform 0.2s var(--ease), background-color 0.2s var(--ease);
 }
 
-.hero-carousel__indicators .active {
-  background-color: rgba(255, 255, 255, 0.1);
+.hero-carousel__indicators [data-bs-target].active {
+  background-color: #ff7a45;
 }
 
-.hero-carousel__indicators .active::before {
+.hero-carousel__indicators [data-bs-target].active::before {
+  width: 12px;
+  height: 12px;
   background-color: var(--accent);
-  transform: scale(1.25);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(46, 16, 101, 0.5);
 }
 
 .hero-carousel__control {
@@ -501,7 +506,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .hero-rubric-nav {
-  padding: 0.65rem 0 0.85rem;
+  padding: 0.25rem 0 0.5rem;
 }
 
 .hero-rubric-nav__list {
@@ -552,7 +557,7 @@ h1, h2, h3, h4, h5, h6,
 
 @media (max-width: 575.98px) {
   .hero-carousel {
-    height: 380px;
+    height: 420px;
   }
 
   .hero-carousel__body {
@@ -570,7 +575,7 @@ h1, h2, h3, h4, h5, h6,
   }
 
   .hero-carousel__indicators {
-    margin-bottom: 0.35rem;
+    margin-bottom: 0;
   }
 
   .hero-rubric-nav__label {
