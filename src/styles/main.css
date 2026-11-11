@@ -824,6 +824,8 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .article-card {
+  display: flex;
+  flex-direction: column;
   border-radius: 8px;
   overflow: hidden;
   background: var(--cr-surface);
@@ -872,6 +874,13 @@ h1, h2, h3, h4, h5, h6,
 
 .article-card__body {
   padding: 1.25rem;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.article-card__tags {
+  margin-top: auto;
 }
 
 .article-card__title {
@@ -888,6 +897,10 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .article-card__title a:hover {
+  color: var(--secondary);
+}
+
+.article-featured:hover .article-card__title {
   color: var(--secondary);
 }
 
@@ -1071,6 +1084,7 @@ a:hover .article-card__media-badge,
 .home-sidebar-sticky {
   position: sticky;
   top: 5.5rem;
+  padding-top: calc(4rem + 6px);
 }
 
 @media (max-width: 991.98px) {
