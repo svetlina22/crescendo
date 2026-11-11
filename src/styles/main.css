@@ -353,7 +353,7 @@ h1, h2, h3, h4, h5, h6,
 
 .hero-carousel {
   position: relative;
-  height: clamp(280px, 52vw, 427px);
+  height: clamp(340px, 62vw, 520px);
 }
 
 .hero-carousel__slide {
@@ -552,7 +552,7 @@ h1, h2, h3, h4, h5, h6,
 
 @media (max-width: 575.98px) {
   .hero-carousel {
-    height: 320px;
+    height: 380px;
   }
 
   .hero-carousel__body {
